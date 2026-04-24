@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@repo/db": ["packages/db/index.ts"],
+      "@repo/db/schema": ["packages/db/schema/index.ts"],
+
+      "@repo/queue": ["packages/queue"],
+      "@repo/queue/document.queue": ["packages/queue/document.queue"],
+      "@repo/queue/email.queue": ["packages/queue/email.queue"],
+      "@repo/queue/*": ["packages/queue/*"],
+     
+      "@repo/ai": ["packages/ai"],
+      "@repo/upload/multer": ["packages/upload/multer"],
+      "@repo/redis/client": ["packages/redis/client"],
+      "@repo/storage/upload": ["packages/storage/upload"],
+      "@repo/storage/fetchFile": ["packages/storage/fetchFile"],
+      "@repo/parser/parse": ["packages/parser/parse"],
+      "@repo/ai/summarize": ["packages/ai/summarize"]
+    }
+  }
+}

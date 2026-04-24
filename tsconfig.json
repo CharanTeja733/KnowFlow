@@ -1,18 +1,8 @@
 {
+  "extends": "./tsconfig.paths.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "paths": {
-      "@repo/db": ["packages/db"],
-      "@repo/db/schema": ["packages/db/schema"],
-      "@repo/queue": ["packages/queue"],
-      "@repo/ai": ["packages/ai"],
-      "@repo/upload/multer": ["packages/upload/multer"],
-      "@repo/queue/document.queue": ["packages/queue/document.queue"],
-      "@repo/redis/client": ["packages/redis/client"],
-      "@repo/storage/upload": ["packages/storage/upload"]
-    },
-    
+    "ignoreDeprecations": "6.0"
   }
 }

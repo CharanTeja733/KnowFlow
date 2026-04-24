@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import { redisClient } from "@repo/redis/client";
-import { processDocument } from "./services/processDocument";
+import { processDocument } from "../services/processDocument";
 import type { ProcessDocumentJob } from "@repo/queue/document.queue";
 
 export const documentWorker = new Worker<ProcessDocumentJob>(

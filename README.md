@@ -1,159 +1,216 @@
-# Turborepo starter
+# 🚀 KnowFlow
 
-This Turborepo starter is maintained by the Turborepo core team.
+**KnowFlow** is a scalable, AI-powered document processing backend built with a modern TypeScript stack. It enables users to upload documents, process them asynchronously, generate AI summaries, and (soon) perform intelligent question answering using Retrieval-Augmented Generation (RAG).
 
-## Using this example
+---
 
-Run the following command:
+## 🧠 Features
 
-```sh
-npx create-turbo@latest
+* 📄 Upload and manage documents
+* ⚡ Asynchronous processing using BullMQ + Redis
+* 🤖 AI-powered document summarization (OpenAI)
+* 🧩 Chunking pipeline for large documents
+* 🔄 Real-time status updates via WebSockets + Redis Pub/Sub
+* 🗄️ PostgreSQL with Drizzle ORM
+* 🧱 Monorepo architecture using Turborepo
+* 🔐 User-scoped data access (secure by design)
+
+---
+
+## 🏗️ Architecture Overview
+
+```
+Client → API (Express)
+            ↓
+        PostgreSQL
+            ↓
+        Redis Queue (BullMQ)
+            ↓
+        Worker (Processing)
+            ↓
+        AI (Summarization / Embeddings)
+            ↓
+        Redis Pub/Sub → WebSocket → Client (Real-time updates)
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+## 📦 Monorepo Structure
 
-### Apps and Packages
+```
+apps/
+  api/        → Express backend (routes, controllers, services)
+  worker/     → Background job processor (BullMQ)
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+packages/
+  db/         → Drizzle schema & database client
+  queue/      → BullMQ configuration
+  redis/      → Redis client + pub/sub
+  ai/         → AI logic (summarization, chunking, embeddings)
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+## ⚙️ Tech Stack
+
+* **Runtime**: Bun
+* **Backend**: Express (TypeScript)
+* **Database**: PostgreSQL (Drizzle ORM)
+* **Queue**: BullMQ + Redis
+* **AI**: OpenAI (gpt-4o-mini)
+* **Validation**: Zod
+* **Realtime**: WebSockets + Redis Pub/Sub
+* **Monorepo**: Turborepo
+
+---
+
+## 🔄 Document Processing Flow
+
+1. User uploads a document
+2. Metadata stored in PostgreSQL (`PENDING`)
+3. Job added to Redis queue
+4. Worker processes document:
+
+   * Extract text
+   * Split into chunks
+   * Summarize each chunk (parallel)
+   * Combine summaries
+5. Final summary stored in DB (`COMPLETED`)
+6. Real-time update sent via WebSocket
+
+---
+
+## 📡 API Endpoints
+
+### Documents
+
+* `POST /documents` → Upload document
+* `GET /documents` → List user documents
+* `GET /documents/:id` → Get document details
+* `DELETE /documents/:id` → Delete document
+
+### AI (Upcoming)
+
+* `POST /ai/ask` → Ask questions on documents (RAG)
+
+---
+
+## ⚡ Real-Time Updates
+
+KnowFlow uses **Redis Pub/Sub + WebSockets** to push updates instantly:
+
+* `PROCESSING`
+* `COMPLETED`
+* `FAILED`
+
+No polling required 🚀
+
+---
+
+## 🧠 AI Pipeline
+
+### ✔️ Chunking Strategy
+
+* Large documents are split into overlapping chunks
+* Prevents token overflow
+* Preserves context
+
+### ✔️ Map-Reduce Summarization
+
+* Chunk → summarize → combine
+* Scalable for large PDFs
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env` file:
+
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/knowflow
+REDIS_URL=redis://localhost:6379
+OPENAI_API_KEY=your_api_key_here
+PORT=3000
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## 🚀 Getting Started
 
-```sh
-turbo build --filter=docs
+### 1. Clone the repo
+
+```
+git clone https://github.com/your-username/knowflow.git
+cd knowflow
 ```
 
-Without global `turbo`:
+### 2. Install dependencies
 
-```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```
+bun install
 ```
 
-### Develop
+### 3. Setup database
 
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
+```
+bun run db:push
 ```
 
-Without global `turbo`, use your package manager:
+### 4. Start services
 
-```sh
-cd my-turborepo
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```
+# Start API
+bun run dev:api
+
+# Start Worker
+bun run dev:worker
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## 🧪 Development Tips
 
-```sh
-turbo dev --filter=web
-```
+* Keep business logic in **services**
+* Controllers should only handle `req/res`
+* Always scope queries with `userId`
+* Never block API — use queues
+* Use Redis for caching and pub/sub
 
-Without global `turbo`:
+---
 
-```sh
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+## 🛠️ Future Improvements
 
-### Remote Caching
+* 🔍 RAG-based question answering (pgvector)
+* 📊 Document insights dashboard
+* ☁️ S3 integration for file storage
+* 🔐 JWT authentication
+* 📈 Progress tracking (chunk-level updates)
+* 🧵 Streaming AI responses
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+---
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## 🤝 Contributing
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+Contributions are welcome! Feel free to open issues or submit PRs.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+---
 
-```sh
-cd my-turborepo
-turbo login
-```
+## 📜 License
 
-Without global `turbo`, use your package manager:
+MIT License
 
-```sh
-cd my-turborepo
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+---
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## 💡 Inspiration
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+KnowFlow is inspired by systems like:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+* Notion AI
+* ChatPDF
+* Perplexity AI
 
-```sh
-turbo link
-```
+---
 
-Without global `turbo`:
+## 👨‍💻 Author
 
-```sh
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Built with ❤️ by Charan

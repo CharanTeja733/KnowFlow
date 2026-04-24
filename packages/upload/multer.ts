@@ -9,8 +9,8 @@ const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
   const allowedMimeTypes = [
     "application/pdf",
     "text/plain",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    // "application/msword",
+    // "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
 
   if (!allowedMimeTypes.includes(file.mimetype)) {

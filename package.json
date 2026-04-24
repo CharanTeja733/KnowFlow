@@ -1,5 +1,5 @@
 {
-  "name": "documind-ai",
+  "name": "know-flow",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -33,6 +33,9 @@
     "drizzle-orm": "^0.45.2",
     "ioredis": "^5.10.1",
     "multer": "^2.1.1",
+    "openai": "^6.33.0",
+    "p-limit": "^7.3.0",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.20.0"
   }
 }

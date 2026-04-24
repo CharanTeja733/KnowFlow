@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "./tsconfig.paths.json",
   "compilerOptions": {
     // Environment setup & latest features
     "lib": ["ESNext"],
@@ -28,6 +28,13 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  }
+    "noPropertyAccessFromIndexSignature": false,
+
+
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "src/**/*",
+    "../../packages/**/*"
+  ]
 }

@@ -3,7 +3,7 @@ import { ApiError } from "../../utils/ApiError";
 import * as services from "./document.services";
 
 export async function uploadDocumentController(req: Request, res: Response) {
-  const userId = req.user?.id;
+  const userId = req.user!.id;
 
   if (!userId) {
     throw new ApiError(401, "Unauthorized");

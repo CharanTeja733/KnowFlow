@@ -4,6 +4,7 @@ import { documentTable } from '@repo/db/schema';
 import type { CreateDocument, Document } from './document.schema';
 import { documentQueue } from "@repo/queue/document.queue";
 import {uploadToS3} from "@repo/storage/upload";
+import { defaultJobOptions } from '@repo/queue/base';
 
 
 export async function uploadDocument(document: Document, userId: string) {
@@ -58,7 +59,7 @@ export async function createDocument({
   mimeType,
   size,
 }: CreateDocument) {
-  // 👉 Upload to storage (replace with S3 later)
+
     const fileUrl = await uploadToS3({
         buffer: fileBuffer,
         fileName,
@@ -78,23 +79,14 @@ export async function createDocument({
     throw new Error("Something went wrong in db")
   }
 
-  // 👉 Add job to queue
+  // Add job to queue
    await documentQueue.add(
     "process-document",
     {
       documentId: document.id,
       userId,
     },
-    {
-      attempts: 3, // retry
-      backoff: {
-        type: "exponential",
-        delay: 5000,
-      },
-      removeOnComplete: true,
-      removeOnFail: false,
-      jobId: document.id, // avoid duplicates
-    }
+    defaultJobOptions
   );
 
   return document;

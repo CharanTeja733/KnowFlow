@@ -11,13 +11,23 @@
       "@repo/queue/*": ["packages/queue/*"],
      
       "@repo/ai": ["packages/ai"],
+      "@repo/ai/summarize": ["packages/ai/summarize"],
+      "@repo/ai/chunk": ["packages/ai/chunk"],
+      "@repo/ai/summarizeChunk": ["packages/ai/summarizeChunk"],
+      "@repo/ai/combineSummaries": ["packages/ai/combineSummaries"],
+
       "@repo/upload/multer": ["packages/upload/multer"],
+
       "@repo/redis/client": ["packages/redis/client"],
       "@repo/redis/pubsub": ["packages/redis/pubsub"],
+
       "@repo/storage/upload": ["packages/storage/upload"],
       "@repo/storage/fetchFile": ["packages/storage/fetchFile"],
+
       "@repo/parser/parse": ["packages/parser/parse"],
-      "@repo/ai/summarize": ["packages/ai/summarize"]
+      
+      "@repo/events": ["packages/events/index.ts"],
+      "@repo/events/*": ["packages/events/*"]
     }
   }
 }

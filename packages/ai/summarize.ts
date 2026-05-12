@@ -1,10 +1,10 @@
-import { splitText } from "./chunk";
+import { chunkText } from "./chunk";
 import { summarizeChunk } from "./summarizeChunk";
 import { combineSummaries } from "./combineSummaries";
 import pLimit from "p-limit";
 
 export async function summarize(text: string) {
-  const chunks = splitText(text);
+  const chunks = chunkText(text);
 
   const limit = pLimit(3); // max 3 parallel calls
 

@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import { redisClient } from "@repo/redis/client";
-import { sendEmail } from "../services/email.services";
+import { sendEmail } from "../services/email/sendEmail";
 
 import { deadLetterQueue } from "@repo/queue/dead-letter.queue";
 import  { QUEUE_NAMES,JOB_NAMES} from "@repo/queue/constants";

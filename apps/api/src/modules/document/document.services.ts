@@ -6,7 +6,6 @@ import { documentQueue } from "@repo/queue/document.queue";
 import {uploadToS3} from "@repo/storage/upload";
 import { defaultJobOptions } from '@repo/queue/base';
 
-
 export async function uploadDocument(document: Document, userId: string) {
     const [documentDetails] = await db
     .insert(documentTable)

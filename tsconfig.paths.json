@@ -4,6 +4,9 @@
     "paths": {
       "@repo/db": ["packages/db/index.ts"],
       "@repo/db/schema": ["packages/db/schema/index.ts"],
+      "@repo/db/repositories/*": ["packages/db/repositories/*"],
+      "@repo/db/repositories": ["packages/db/repositories/index.ts"],
+
 
       "@repo/queue": ["packages/queue"],
       "@repo/queue/document.queue": ["packages/queue/document.queue"],

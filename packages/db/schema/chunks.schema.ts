@@ -1,12 +1,12 @@
-import {pgTable, varchar, uuid, timestamp,boolean, text, pgEnum, integer, vector, date} from "drizzle-orm/pg-core";
+import {pgTable, uuid, timestamp, text, integer} from "drizzle-orm/pg-core";
 import { documentTable } from "./documents.schema";
 
 
-export const chunksTable = pgTable('chunks', {
-    id: uuid().primaryKey(),
-    documentId: uuid().references(() => documentTable.id),
-    content: text(),
+export const chunkTable = pgTable('chunks', {
+    id: uuid().primaryKey().defaultRandom(),
+    documentId: uuid("document_id").references(() => documentTable.id),
+    content: text().notNull(),
     // embedding: vector('embedding').notNull(),
-    chunkIndex: integer(),
-    createdAt:  timestamp()
+    chunkIndex: integer("chunk_index").notNull(),
+    createdAt:  timestamp("created_at").notNull().defaultNow(),
 })  

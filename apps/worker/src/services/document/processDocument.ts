@@ -1,13 +1,7 @@
-import db from "@repo/db";
-
 import {
-  documentTable,
-} from "@repo/db/schema";
-
-import {
-  eq,
-  and,
-} from "drizzle-orm";
+  documentRepository,
+  processingRepository,
+} from "@repo/db/repositories";
 
 import {
   fetchFileAsBuffer,
@@ -20,18 +14,6 @@ import {
 import {
   summarizeDocument,
 } from "./summarizeDocument";
-
-import {
-  startProcessingState,
-  updateProcessingProgress,
-  clearProcessingState,
-} from "./processingState";
-
-import {
-  markDocumentProcessing,
-  markDocumentCompleted,
-  markDocumentFailed,
-} from "./documentPersistence";
 
 import {
   publishDocumentProcessing,
@@ -50,14 +32,10 @@ export async function processDocument(
    * -----------------------------------
    */
 
-  const [document] = await db
-    .select()
-    .from(documentTable)
-    .where(
-      and(
-        eq(documentTable.id, documentId),
-        eq(documentTable.userId, userId)
-      )
+  const document =
+    await documentRepository.findById(
+      documentId,
+      userId
     );
 
   if (!document) {
@@ -90,9 +68,15 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await markDocumentProcessing(
+    await documentRepository.markProcessing(
       documentId
     );
+
+    /**
+     * -----------------------------------
+     * Publish Processing Event
+     * -----------------------------------
+     */
 
     await publishDocumentProcessing(
       documentId
@@ -131,7 +115,7 @@ export async function processDocument(
 
     /**
      * -----------------------------------
-     * Summarize
+     * Summarize Document
      * -----------------------------------
      */
 
@@ -147,14 +131,13 @@ export async function processDocument(
             totalChunks
           ) => {
             /**
-             * Initialize processing state
-             * once total chunks known
+             * Initialize Processing State
              */
 
             if (
               !processingInitialized
             ) {
-              await startProcessingState(
+              await processingRepository.start(
                 documentId,
                 totalChunks
               );
@@ -164,16 +147,16 @@ export async function processDocument(
             }
 
             /**
-             * Persist progress
+             * Persist Progress
              */
 
-            await updateProcessingProgress(
+            await processingRepository.updateProgress(
               documentId,
               completedChunks
             );
 
             /**
-             * Publish realtime event
+             * Publish Progress Event
              */
 
             await publishDocumentProgress(
@@ -187,11 +170,11 @@ export async function processDocument(
 
     /**
      * -----------------------------------
-     * Save Summary
+     * Persist Summary
      * -----------------------------------
      */
 
-    await markDocumentCompleted(
+    await documentRepository.markCompleted(
       documentId,
       result.summary
     );
@@ -202,13 +185,13 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await clearProcessingState(
+    await processingRepository.clear(
       documentId
     );
 
     /**
      * -----------------------------------
-     * Publish Completion
+     * Publish Completion Event
      * -----------------------------------
      */
 
@@ -233,7 +216,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await markDocumentFailed(
+    await documentRepository.markFailed(
       documentId,
       message
     );
@@ -244,13 +227,13 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await clearProcessingState(
+    await processingRepository.clear(
       documentId
     );
 
     /**
      * -----------------------------------
-     * Publish Failure
+     * Publish Failure Event
      * -----------------------------------
      */
 

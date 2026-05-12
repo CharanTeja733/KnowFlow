@@ -11,20 +11,26 @@ import {
 
 export const documentRepository = {
   async create(data: {
-    userId: string;
-    name: string;
-    fileUrl: string;
-    fileSize: number;
-    fileType: string;
-    status: "PENDING";
-  }) {
-    const [document] = await db
-      .insert(documentTable)
-      .values(data)
-      .returning();
+  userId: string;
+  name: string;
+  fileUrl: string;
+  fileSize: number;
+  fileType: string;
+  status: "PENDING";
+}) {
+  const [document] = await db
+    .insert(documentTable)
+    .values(data)
+    .returning();
 
-    return document;
-  },
+  if (!document) {
+    throw new Error(
+      "Failed to create document"
+    );
+  }
+
+  return document;
+},
 
   async findById(
     documentId: string,

@@ -25,14 +25,3 @@ export const userTable = pgTable('users', {
     updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date())
 });
 
-/*
-const chunksTable = pgTable('chunks', {
-    id: uuid().primaryKey(),
-    documentId: uuid().references(() => documentTable.id),
-    content: text(),
-    // embedding: vector('embedding').notNull(),
-    chunkIndex: integer(),
-    createdAt:  timestamp()
-})  
-
-*/

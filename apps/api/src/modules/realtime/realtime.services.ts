@@ -12,13 +12,15 @@ import {
   documentChannel,
 } from "@repo/events";
 
-import db from "@repo/db";
+import {
+  documentRepository,
+} from "@repo/db/repositories";
 
 import {
-  documentTable,
-} from "@repo/db/schema";
-
-import { and, eq } from "drizzle-orm";
+  setupSSEHeaders,
+  sendSSEEvent,
+  sendSSEComment,
+} from "../../infrastructure/sse/sse";
 
 import { ApiError }
 from "../../utils/ApiError";
@@ -52,11 +54,10 @@ export async function streamDocumentEvents({
    */
 
   const document =
-    await db
-        .select()
-        .from(documentTable)
-        .where(and(eq(documentTable.userId, userId), eq(documentTable.id, documentId)));
-
+  await documentRepository.findById(
+    documentId,
+    userId
+  );
 
   if (!document) {
     throw new ApiError(
@@ -73,7 +74,7 @@ export async function streamDocumentEvents({
 
   setupSSEHeaders(res);
 
-  sendEvent(res, {
+  sendSSEEvent(res, {
     type: "CONNECTED",
     documentId,
   });
@@ -90,7 +91,7 @@ export async function streamDocumentEvents({
   const eventHandler = (
     data: unknown
   ) => {
-    sendEvent(res, data);
+    sendSSEEvent(res, data);
   };
 
   /**
@@ -113,9 +114,8 @@ export async function streamDocumentEvents({
    */
 
   const heartbeat = setInterval(() => {
-    res.write(": heartbeat\n\n");
+    sendSSEComment(res, "heartbeat");
   }, HEARTBEAT_INTERVAL);
-
   /**
    * -----------------------------------
    * Cleanup On Disconnect
@@ -123,65 +123,21 @@ export async function streamDocumentEvents({
    * -----------------------------------
    */
 
-  req.on("close", async () => {
-    clearInterval(heartbeat);
+  res.on("close", async () => {
+    try {
+      clearInterval(heartbeat);
 
-    await unsubscribe(
-      channel,
-      eventHandler
-    );
+      await unsubscribe(
+        channel,
+        eventHandler
+      );
 
-    res.end();
+      res.end();
+    } catch (error) {
+      console.error(
+        "SSE cleanup failed",
+        error
+      );
+    }
   });
-}
-
-/**
- * -----------------------------------
- * SSE Headers
- * -----------------------------------
- */
-
-function setupSSEHeaders(
-  res: Response
-) {
-  res.setHeader(
-    "Content-Type",
-    "text/event-stream"
-  );
-
-  res.setHeader(
-    "Cache-Control",
-    "no-cache"
-  );
-
-  res.setHeader(
-    "Connection",
-    "keep-alive"
-  );
-
-  /**
-   * Disables nginx buffering
-   */
-
-  res.setHeader(
-    "X-Accel-Buffering",
-    "no"
-  );
-
-  res.flushHeaders();
-}
-
-/**
- * -----------------------------------
- * Send SSE Event
- * -----------------------------------
- */
-
-function sendEvent(
-  res: Response,
-  data: unknown
-) {
-  res.write(
-    `data: ${JSON.stringify(data)}\n\n`
-  );
 }

@@ -59,14 +59,19 @@ const envSchema = z.object({
 
   CHUNK_OVERLAP: z.coerce.number(),
 
+
   // file upload
   MAX_FILE_SIZE: z.coerce.number(),
+
 
   //Email
   RESEND_API_KEY: z.string(),
 
+  EMAIL_VERIFICATION_EXPIRES_MS: z.coerce.number(),
+
   EMAIL_FROM_ADDRESS: z.email(),
 
+  
   //Workers
   WORKER_CONCURRENCY: z.coerce.number()
 });

@@ -23,6 +23,8 @@ import {
   verifyEmailTemplate,
 } from "../../lib/email";
 
+import {authConfig, urlConfig} from "@repo/config";
+
 import { ApiError } from "@/lib/errors";
 
 import type { Register } from "./auth.schema";
@@ -53,13 +55,13 @@ export async function registerUser(userDetails: Register) {
     password: hashedPassword,
     emailVerificationToken: hashedToken,
     emailVerificationExpires: new Date(
-      Date.now() + 24 * 60 * 60 * 1000
+      Date.now() + authConfig.emailVerification.expiresMs
     ),
   });
 
   // Send verification email
   const verificationLink =
-    `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+    `${urlConfig.frontendUrl}/verify-email?token=${rawToken}`;
 
   await emailQueue.add(
     "send-email",
@@ -241,7 +243,7 @@ export async function forgotPassword(email: string) {
   );
 
   const resetURL =
-    `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+    `${urlConfig.frontendUrl}/reset-password?token=${rawToken}`;
 
   await emailQueue.add(
     "send-email",

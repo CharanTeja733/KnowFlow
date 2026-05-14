@@ -22,10 +22,12 @@ import {
   sendSSEComment,
 } from "../../infrastructure/sse/sse";
 
+import { realtimeConfig } from "@repo/config";
+
 import { ApiError }
 from "../../utils/ApiError";
 
-const HEARTBEAT_INTERVAL = 30000;
+const HEARTBEAT_INTERVAL = realtimeConfig.heartbeatInterval;
 
 type StreamDocumentEventsParams = {
   req: Request;

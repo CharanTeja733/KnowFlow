@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import {env} from "@repo/env";
 
 import {
   registerUser,
@@ -62,21 +63,27 @@ export async function loginController(
 
   // Store refresh token in cookie
   res.cookie(
-    "refreshToken",
-    result.refreshToken,
-    {
-      httpOnly: true,
+  "refreshToken",
+  result.refreshToken,
+  {
+    httpOnly: true,
 
-      secure:
-        process.env.NODE_ENV ===
-        "production",
+    secure:
+      env.NODE_ENV ===
+      "production",
 
-      sameSite: "strict",
+    sameSite: "strict",
 
-      maxAge:
-        1000 * 60 * 60 * 24 * 7,
-    }
-  );
+    domain:
+      env.NODE_ENV ===
+      "production"
+        ? env.COOKIE_DOMAIN
+        : undefined,
+
+    maxAge:
+      env.COOKIE_MAX_AGE,
+  }
+);
 
   return res.status(200).json({
     success: true,
@@ -114,13 +121,19 @@ export async function refreshTokenController(
       httpOnly: true,
 
       secure:
-        process.env.NODE_ENV ===
+        env.NODE_ENV ===
         "production",
 
       sameSite: "strict",
 
+      domain:
+        env.NODE_ENV ===
+        "production"
+          ? env.COOKIE_DOMAIN
+          : undefined,
+
       maxAge:
-        1000 * 60 * 60 * 24 * 7,
+        env.COOKIE_MAX_AGE,
     }
   );
 

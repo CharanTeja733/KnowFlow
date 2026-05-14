@@ -65,6 +65,8 @@ const envSchema = z.object({
   //Email
   RESEND_API_KEY: z.string(),
 
+  EMAIL_FROM_ADDRESS: z.email(),
+
   //Workers
   WORKER_CONCURRENCY: z.coerce.number()
 });

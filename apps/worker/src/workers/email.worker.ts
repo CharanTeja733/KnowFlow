@@ -6,6 +6,8 @@ import { deadLetterQueue } from "@repo/queue/dead-letter.queue";
 import  { QUEUE_NAMES,JOB_NAMES} from "@repo/queue/constants";
 
 import type { SendEmailJob, DeadLetterJob } from "@repo/queue/types";
+import {queueConfig} from "@repo/config";
+
 
 export const emailWorker = new Worker<SendEmailJob>(
   QUEUE_NAMES.EMAIL,
@@ -16,7 +18,7 @@ export const emailWorker = new Worker<SendEmailJob>(
   },
   {
     connection: redisClient,
-    concurrency: 5, // process 5 jobs in parallel
+    concurrency: queueConfig.workerConcurrency, // process 5 jobs in parallel
   }
 );
 

@@ -16,9 +16,10 @@ import {
   withTimeout,
 } from "../../utils/timeout";
 
-const CHUNK_CONCURRENCY = 5;
+import { aiConfig } from "@repo/config/ai.config";
+const CHUNK_CONCURRENCY = aiConfig.summarization.concurrency;
 
-const AI_TIMEOUT = 15000;
+const AI_TIMEOUT = aiConfig.summarization.timeoutMs;
 
 type ProgressCallback = (
   completedChunks: number,

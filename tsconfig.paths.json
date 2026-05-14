@@ -29,8 +29,13 @@
 
       "@repo/parser/parse": ["packages/parser/parse"],
       
-      "@repo/events": ["packages/events/index.ts"],
-      "@repo/events/*": ["packages/events/*"]
+       "@repo/events": ["packages/events/index.ts"],
+       "@repo/events/*": ["packages/events/*"],
+
+      "@repo/env": ["packages/env/index.ts"],
+
+      "@repo/config/*": ["packages/config/*"],
+      "@repo/config": ["packages/config/index.ts"]
     }
   }
 }

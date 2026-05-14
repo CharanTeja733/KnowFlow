@@ -1,5 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "./s3";
+import { s3 } from "./s3";
+import { env } from "@repo/env";
 
 export async function uploadToS3({
   buffer,
@@ -22,8 +23,8 @@ export async function uploadToS3({
     ContentType: mimeType,
   });
 
-  await s3Client.send(command);
+  await s3.send(command);
 
   //  public URL (basic version)
-  return `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  return `https://${bucket}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
 }

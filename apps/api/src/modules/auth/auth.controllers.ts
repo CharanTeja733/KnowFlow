@@ -1,151 +1,202 @@
 import type { Request, Response } from "express";
-import { comparePassword, generateHashedPassword } from "../../utils/hash";
-import { getUserByEmail, createUser, registerUser, verifyEmailService, loginUser, refreshAccessToken,logoutUser, forgotPassword, resetPassword } from "./auth.services";
 
-import * as services from "./auth.services";
-import { createUserToken } from "../../utils/token";
+import {
+  registerUser,
+  verifyEmailService,
+  loginUser,
+  refreshAccessToken,
+  logoutUser,
+  forgotPassword,
+  resetPassword,
+} from "./auth.services";
+
 import { ApiError } from "@/lib/errors";
 
-export async function signupController(req: Request, res: Response) {
-    const {name, email, password} = req.body;
-    
-    const existingUser = await getUserByEmail(email);
-    if(existingUser) {
-        return res.status(400).json({error: `user with email id ${email} already exist`});
-    }
 
-    const hashedPassword = await generateHashedPassword(password);
-    const user = {
-        name,
-        email,
-        password: hashedPassword
-    };
-    const createdUser = await createUser(user);
+// Register
+export async function registerController(
+  req: Request,
+  res: Response
+) {
+  const { name, email, password } = req.body;
 
-    return res.status(201).json({user: createdUser});
-    
-}
-
-export async function signinController(req: Request, res: Response) {
-    const {email, password} = req.body;
-
-    const user = await getUserByEmail(email);
-
-    if(!user) {
-        return res.status(400).json({error: `user with email id ${email} already not exist`}); 
-    }
-
-    const isPasswordCorrect = await comparePassword(password, user.password);
-
-    if(!isPasswordCorrect) {
-        return res.status(401).json({error: 'invalid credentials'});
-    }
-
-    const payload = {
-        name: user.name,
-        id: user.id,
-        email: user.email
-    }
-    const token = createUserToken(payload);
-
-    return res.status(200).json({token});
-}
-
-export async function registerController(req: Request, res: Response) {
-    const {name, email, password} = req.body;
-
-    const existingUser = await getUserByEmail(email);
-    if(existingUser) {
-        return res.status(400).json({error: `user with email id ${email} already exist`});
-    } 
-
-    await registerUser({name, email, password});
-
-    return res.status(201).json({status: 'success', message: "email is send for verification"});
-}
-
-export async function verificationController(req: Request, res: Response) {
- 
-    const token = req.query.token as string;
-
-    const result = await verifyEmailService(token);
-
-    return res.status(200).json({
-      success: true,
-      message: result.message,
-    });
-}
-
-export async function loginController(req: Request, res: Response) {
-    const {email, password} = req.body;
-
-    const result = await loginUser(email, password);
-    
-    return res.status(200).json({success: true, data: result})
-}
-
-
-export async function refreshTokenController(req: Request, res: Response) {
-    const refreshToken = req.cookies.refreshToken as string;
-
-    if(!refreshAccessToken) {
-        throw new ApiError(401, "Require Refresh Token")
-    }
-
-    const tokens = await refreshAccessToken(refreshToken);
-
-    res.cookie("refreshToken", tokens.refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-    });
-
-    res.status(200).json({
-        success: true,
-        accessToken: tokens.accessToken,
-    });
-}
-
-
-
-
-export async function logoutController(req: Request, res: Response) {
-    const userId = req.user?.id as string;
-
-    await logoutUser(userId);
-     
-    res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+  await registerUser({
+    name,
+    email,
+    password,
   });
 
-   res.status(200).json({
-        success: true,
-        message: "Logout out successfully"
-    });
+  return res.status(201).json({
+    success: true,
+    message: "Verification email sent",
+  });
 }
 
 
+// Verify email
+export async function verificationController(
+  req: Request,
+  res: Response
+) {
+  const token = req.query.token as string;
 
-export async function forgotPasswordController(req: Request, res: Response) {
-     const { email } = req.body;
+  const result =
+    await verifyEmailService(token);
 
-    await forgotPassword(email);
+  return res.status(200).json({
+    success: true,
+    message: result.message,
+  });
+}
 
-    res.status(200).json({
-      success: true,
-      message: "If the email exists, a reset link has been sent",
-    });
-} 
 
-export async function resetPasswordController(req: Request, res: Response) {
-     const { token, password } = req.body;
+// Login
+export async function loginController(
+  req: Request,
+  res: Response
+) {
+  const { email, password } = req.body;
 
-    await resetPassword(token, password);
+  const result =
+    await loginUser(email, password);
 
-    res.status(200).json({
-      success: true,
-      message: "Password reset successful",
-    });
+  // Store refresh token in cookie
+  res.cookie(
+    "refreshToken",
+    result.refreshToken,
+    {
+      httpOnly: true,
+
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+
+      sameSite: "strict",
+
+      maxAge:
+        1000 * 60 * 60 * 24 * 7,
+    }
+  );
+
+  return res.status(200).json({
+    success: true,
+    accessToken: result.accessToken,
+    user: result.user,
+  });
+}
+
+
+// Refresh access token
+export async function refreshTokenController(
+  req: Request,
+  res: Response
+) {
+  const refreshToken =
+    req.cookies.refreshToken as string;
+
+  if (!refreshToken) {
+    throw new ApiError(
+      401,
+      "Refresh token missing"
+    );
+  }
+
+  const tokens =
+    await refreshAccessToken(
+      refreshToken
+    );
+
+  // Rotate refresh token cookie
+  res.cookie(
+    "refreshToken",
+    tokens.refreshToken,
+    {
+      httpOnly: true,
+
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+
+      sameSite: "strict",
+
+      maxAge:
+        1000 * 60 * 60 * 24 * 7,
+    }
+  );
+
+  return res.status(200).json({
+    success: true,
+    accessToken: tokens.accessToken,
+  });
+}
+
+
+// Logout
+export async function logoutController(
+  req: Request,
+  res: Response
+) {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new ApiError(
+      401,
+      "Unauthorized"
+    );
+  }
+
+  await logoutUser(userId);
+
+  // Clear refresh token cookie
+  res.clearCookie(
+    "refreshToken",
+    {
+      httpOnly: true,
+
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+
+      sameSite: "strict",
+    }
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+}
+
+
+// Forgot password
+export async function forgotPasswordController(
+  req: Request,
+  res: Response
+) {
+  const { email } = req.body;
+
+  await forgotPassword(email);
+
+  return res.status(200).json({
+    success: true,
+
+    message:
+      "If the email exists, a reset link has been sent",
+  });
+}
+
+
+// Reset password
+export async function resetPasswordController(
+  req: Request,
+  res: Response
+) {
+  const { token, password } = req.body;
+
+  await resetPassword(token, password);
+
+  return res.status(200).json({
+    success: true,
+    message: "Password reset successful",
+  });
 }

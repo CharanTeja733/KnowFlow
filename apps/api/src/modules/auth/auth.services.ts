@@ -1,112 +1,114 @@
-import db from "@repo/db";
-import { userTable } from "@repo/db/schema";
-import { emailQueue } from "@repo/queue/email.queue";
-import { eq } from 'drizzle-orm';
+// apps/api/src/modules/auth/auth.services.ts
 
-import type { Register, Signup } from './auth.schema';
-import { hashToken, generateToken, hashPassword, comparePassword, generateResetToken } from '@/lib/security';
-import { forgotPasswordTemplate, verifyEmailTemplate } from '../../lib/email';
-import { ApiError } from '@/lib/errors';
-import {generateAccessToken, generateRefreshToken, verifyRefreshToken} from '@/lib/jwt';
+import { userRepository } from "@repo/db/repositories";
+import { emailQueue } from "@repo/queue/email.queue";
 import { defaultJobOptions } from "@repo/queue/base";
 
-export async function getUserByEmail(email: string) {
-    const [user]  = await db
-        .select()
-        .from(userTable)
-        .where(eq(userTable.email, email));
+import {
+  hashPassword,
+  comparePassword,
+  generateToken,
+  hashToken,
+  generateResetToken,
+} from "@/lib/security";
 
-    return user;
-}
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "@/lib/jwt";
 
-export async function createUser(user: Signup) {
-    const [createdUser] = await db
-        .insert(userTable)
-        .values({ ...user})
-        .returning({
-            name: userTable.name, 
-            email: userTable.email,
-            id: userTable.id
-        });
-        
-    return createdUser;
-}
+import {
+  forgotPasswordTemplate,
+  verifyEmailTemplate,
+} from "../../lib/email";
 
+import { ApiError } from "@/lib/errors";
+
+import type { Register } from "./auth.schema";
+
+
+// Register user
 export async function registerUser(userDetails: Register) {
-    const {name, email, password} = userDetails;
-    
-    const rawToken = generateToken();
-    const hashedToken = hashToken(rawToken);
-    const hashedPassword = await hashPassword(password);
+  const { name, email, password } = userDetails;
 
-    const [user] = await db
-        .insert(userTable)
-        .values({
-            name,
-            email,
-            password: hashedPassword,
-            emailVerificationToken: hashedToken,
-            emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        })
-        .returning({
-            name: userTable.name,
-            email: userTable.email,
-            id: userTable.id,
-        }); 
+  // Check existing user
+  const existingUser = await userRepository.findByEmail(email);
 
-    const link = `http://localhost:3000/verify-email?token=${rawToken}`;
-    
-    if (user) {
-      const data = {
-          to: user.email,
-          subject: "Verify Email",
-          html: verifyEmailTemplate(link),
-      }
-      await emailQueue.add("send-email", data, defaultJobOptions);
-    }
+  if (existingUser) {
+    throw new ApiError(409, "User already exists");
+  }
 
-    return user;    
+  // Generate verification token
+  const rawToken = generateToken();
+  const hashedToken = hashToken(rawToken);
+
+  // Hash password
+  const hashedPassword = await hashPassword(password);
+
+  // Create user
+  const user = await userRepository.create({
+    name,
+    email,
+    password: hashedPassword,
+    emailVerificationToken: hashedToken,
+    emailVerificationExpires: new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    ),
+  });
+
+  // Send verification email
+  const verificationLink =
+    `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+
+  await emailQueue.add(
+    "send-email",
+    {
+      to: user.email,
+      subject: "Verify Email",
+      html: verifyEmailTemplate(verificationLink),
+    },
+    defaultJobOptions
+  );
+
+  return user;
 }
 
 
+// Verify email
 export async function verifyEmailService(token: string) {
-    // 1. hash incoming token
-    const hashedToken = hashToken(token);
+  const hashedToken = hashToken(token);
 
-    // 2. find user by token
-    const [user] = await db
-        .select()
-        .from(userTable)
-        .where(eq(userTable.emailVerificationToken, hashedToken))
-        .limit(1);
+  const user =
+    await userRepository.findByEmailVerificationToken(
+      hashedToken
+    );
 
-    // 3. validate user
-    if (!user) {
-        throw new Error("Invalid or expired token");
-    }
+  if (!user) {
+    throw new ApiError(400, "Invalid token");
+  }
 
-    // 4. check expiry
-    if (!user.emailVerificationExpires || new Date() > user.emailVerificationExpires) {
-        throw new Error("Token expired");
-    }
+  if (
+    !user.emailVerificationExpires ||
+    new Date() > user.emailVerificationExpires
+  ) {
+    throw new ApiError(400, "Token expired");
+  }
 
-    // 5. update user
-    await db
-        .update(userTable)
-        .set({
-            isEmailVerified: true,
-            emailVerificationToken: null,
-            emailVerificationExpires: null,
-        })
-        .where(eq(userTable.id, user.id));    
+  await userRepository.markEmailVerified(user.id);
 
-    return {
-        message: "Email verified successfully",
-    };
+  return {
+    message: "Email verified successfully",
+  };
 }
 
-export async function loginUser(email: string, password: string) {
-  const user = await getUserByEmail(email);
+
+// Login user
+export async function loginUser(
+  email: string,
+  password: string
+) {
+  const user = await userRepository.findByEmail(email);
 
   if (!user) {
     throw new ApiError(401, "Invalid credentials");
@@ -116,30 +118,33 @@ export async function loginUser(email: string, password: string) {
     throw new ApiError(403, "Email not verified");
   }
 
-  const isMatch = await comparePassword(password, user.password);
+  const isPasswordCorrect =
+    await comparePassword(password, user.password);
 
-  if (!isMatch) {
-    // increment failed attempts (optional)
+  if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid credentials");
   }
 
-  // reset failed attempts (optional)
-  const accessToken = generateAccessToken(user.id, user.role);
+  // Generate tokens
+  const accessToken =
+    generateAccessToken(user.id, user.role);
 
-  const { token: refreshToken, expiresAt } = generateRefreshToken(user.id);
+  const {
+    token: refreshToken,
+    expiresAt,
+  } = generateRefreshToken(user.id);
 
-  // store hashed token + expiry
-  await db
-    .update(userTable)
-    .set({
-      refreshToken: hashToken(refreshToken),
-      refreshTokenExpires: expiresAt,
-    })
-    .where(eq(userTable.id, user.id));
+  // Store refresh token
+  await userRepository.storeRefreshToken(
+    user.id,
+    hashToken(refreshToken),
+    expiresAt
+  );
 
   return {
     accessToken,
-    refreshToken, // send raw token to client
+    refreshToken,
+
     user: {
       id: user.id,
       email: user.email,
@@ -149,19 +154,20 @@ export async function loginUser(email: string, password: string) {
 }
 
 
-export async function refreshAccessToken(oldRefreshToken: string) {
+// Refresh access token
+export async function refreshAccessToken(
+  oldRefreshToken: string
+) {
   if (!oldRefreshToken) {
     throw new ApiError(401, "Refresh token missing");
   }
 
-  // ✅ delegate JWT logic
-  const payload = verifyRefreshToken(oldRefreshToken);
+  // Verify refresh token
+  const payload =
+    verifyRefreshToken(oldRefreshToken);
 
-  const [user] = await db
-    .select()
-    .from(userTable)
-    .where(eq(userTable.id, payload.userId))
-    .limit(1);
+  const user =
+    await userRepository.findById(payload.userId);
 
   if (!user) {
     throw new ApiError(401, "User not found");
@@ -178,38 +184,30 @@ export async function refreshAccessToken(oldRefreshToken: string) {
     throw new ApiError(401, "Refresh token expired");
   }
 
-  // ✅ delegate hashing
-  const hashedIncoming = hashToken(oldRefreshToken);
+  // Detect token reuse
+  const hashedIncoming =
+    hashToken(oldRefreshToken);
 
   if (hashedIncoming !== user.refreshToken) {
-    // 🚨 reuse detection
-    await db
-      .update(userTable)
-      .set({
-        refreshToken: null,
-        refreshTokenExpires: null,
-      })
-      .where(eq(userTable.id, user.id));
+    await userRepository.clearRefreshToken(user.id);
 
     throw new ApiError(401, "Invalid refresh token");
   }
 
-  // 🔁 rotation
-  const { token: newRefreshToken, expiresAt } =
-    generateRefreshToken(user.id);
+  // Rotate tokens
+  const {
+    token: newRefreshToken,
+    expiresAt,
+  } = generateRefreshToken(user.id);
 
-  const newAccessToken = generateAccessToken(
+  const newAccessToken =
+    generateAccessToken(user.id, user.role);
+
+  await userRepository.storeRefreshToken(
     user.id,
-    user.role
+    hashToken(newRefreshToken),
+    expiresAt
   );
-
-  await db
-    .update(userTable)
-    .set({
-      refreshToken: hashToken(newRefreshToken),
-      refreshTokenExpires: expiresAt,
-    })
-    .where(eq(userTable.id, user.id));
 
   return {
     accessToken: newAccessToken,
@@ -217,66 +215,62 @@ export async function refreshAccessToken(oldRefreshToken: string) {
   };
 }
 
+
+// Logout user
 export async function logoutUser(userId: string) {
-  await db
-    .update(userTable)
-    .set({
-      refreshToken: null,
-      refreshTokenExpires: null
-    })
-    .where(eq(userTable.id, userId));
+  await userRepository.clearRefreshToken(userId);
 }
 
 
+// Forgot password
 export async function forgotPassword(email: string) {
-    const [user] = await db
-      .select()
-      .from(userTable)
-      .where(eq(userTable.email, email));
+  const user = await userRepository.findByEmail(email);
 
-    if (!user) {
-      return;
-    }
-    
-    const {rawToken, hashedToken, expiresAt} = generateResetToken();
+  // Prevent user enumeration
+  if (!user) {
+    return;
+  }
 
-    await db
-      .update(userTable)
-      .set({
-        passwordResetToken: hashedToken,
-        passwordResetExpires: expiresAt
-      })
-      .where(eq(userTable.id, user.id))
-      const resetURL = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+  const { rawToken, hashedToken, expiresAt } =
+    generateResetToken();
 
-      const data = {
-        to: user.email,
-        subject: "Reset Password",
-        html: forgotPasswordTemplate(resetURL),
-      };
+  await userRepository.storePasswordResetToken(
+    user.id,
+    hashedToken,
+    expiresAt
+  );
 
-    await emailQueue.add("send-email", data, defaultJobOptions);
+  const resetURL =
+    `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+  await emailQueue.add(
+    "send-email",
+    {
+      to: user.email,
+      subject: "Reset Password",
+      html: forgotPasswordTemplate(resetURL),
+    },
+    defaultJobOptions
+  );
 }
 
 
+// Reset password
 export async function resetPassword(
   token: string,
   newPassword: string
 ) {
-  // 🔐 hash incoming token
   const hashedToken = hashToken(token);
 
-  const [user] = await db
-    .select()
-    .from(userTable)
-    .where(eq(userTable.passwordResetToken, hashedToken))
-    .limit(1);
+  const user =
+    await userRepository.findByPasswordResetToken(
+      hashedToken
+    );
 
   if (!user) {
-    throw new ApiError(400, "Invalid or expired token");
+    throw new ApiError(400, "Invalid token");
   }
 
-  // 🔐 check expiry
   if (
     !user.passwordResetExpires ||
     user.passwordResetExpires < new Date()
@@ -284,20 +278,11 @@ export async function resetPassword(
     throw new ApiError(400, "Token expired");
   }
 
-  // 🔒 hash new password
-  const hashedPassword = await hashPassword(newPassword);
+  const hashedPassword =
+    await hashPassword(newPassword);
 
-  // 🧹 update user + cleanup
-  await db
-    .update(userTable)
-    .set({
-      password: hashedPassword,
-      passwordResetToken: null,
-      passwordResetExpires: null,
-
-      // 🔐 optional but recommended
-      refreshToken: null,
-      refreshTokenExpires: null,
-    })
-    .where(eq(userTable.id, user.id));
+  await userRepository.updatePassword(
+    user.id,
+    hashedPassword
+  );
 }

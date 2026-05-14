@@ -5,4 +5,3 @@ import { QUEUE_NAMES } from "./constants";
 export const deadLetterQueue = new Queue(QUEUE_NAMES.DEAD_LETTER, {
   connection: redisClient,
 });
-

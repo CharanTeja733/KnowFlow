@@ -1,34 +1,19 @@
-import type {
-  CreateDocument,
-  Document,
-} from "./document.schema";
+import type { CreateDocument, Document } from "./document.schema";
 
-import {
-  uploadToS3,
-} from "@repo/storage/upload";
+import { uploadToS3 } from "@repo/storage/upload";
 
-import {
-  documentQueue,
-} from "@repo/queue/document.queue";
+import { documentQueue } from "@repo/queue/document.queue";
 
-import {
-  defaultJobOptions,
-} from "@repo/queue/base";
+import { defaultJobOptions } from "@repo/queue/base";
 
-import {
-  documentRepository,
-} from "@repo/db/repositories";
+import { documentRepository } from "@repo/db/repositories";
 
-export async function uploadDocument(
-  document: Document,
-  userId: string
-) {
-  const createdDocument =
-    await documentRepository.create({
-      ...document,
-      userId,
-      status: "PENDING",
-    });
+export async function uploadDocument(document: Document, userId: string) {
+  const createdDocument = await documentRepository.create({
+    ...document,
+    userId,
+    status: "PENDING",
+  });
 
   return {
     documentId: createdDocument.id,
@@ -36,38 +21,19 @@ export async function uploadDocument(
   };
 }
 
-export async function getDocuments(
-  userId: string
-) {
-  return documentRepository.findManyByUserId(
-    userId
-  );
+export async function getDocuments(userId: string) {
+  return documentRepository.findManyByUserId(userId);
 }
 
-export async function getDocument(
-  documentId: string,
-  userId: string
-) {
-  return documentRepository.findById(
-    documentId,
-    userId
-  );
+export async function getDocument(documentId: string, userId: string) {
+  return documentRepository.findById(documentId, userId);
 }
 
-export async function deleteDocument(
-  documentId: string,
-  userId: string
-) {
-  const result =
-    await documentRepository.delete(
-      documentId,
-      userId
-    );
+export async function deleteDocument(documentId: string, userId: string) {
+  const result = await documentRepository.delete(documentId, userId);
 
   if (result.rowCount === 0) {
-    throw new Error(
-      "Document not found"
-    );
+    throw new Error("Document not found");
   }
 }
 
@@ -78,36 +44,31 @@ export async function createDocument({
   mimeType,
   size,
 }: CreateDocument) {
-
   /**
    * Upload File
    */
 
-  const fileUrl =
-    await uploadToS3({
-      buffer: fileBuffer,
-      fileName,
-      mimeType,
-    });
+  const fileUrl = await uploadToS3({
+    buffer: fileBuffer,
+    fileName,
+    mimeType,
+  });
 
   /**
    * Persist Document
    */
 
-  const document =
-    await documentRepository.create({
-      userId,
-      name: fileName,
-      fileUrl,
-      fileSize: size,
-      fileType: mimeType,
-      status: "PENDING",
-    });
+  const document = await documentRepository.create({
+    userId,
+    name: fileName,
+    fileUrl,
+    fileSize: size,
+    fileType: mimeType,
+    status: "PENDING",
+  });
 
   if (!document) {
-    throw new Error(
-      "Failed to create document"
-    );
+    throw new Error("Failed to create document");
   }
 
   /**
@@ -120,7 +81,7 @@ export async function createDocument({
       documentId: document.id,
       userId,
     },
-    defaultJobOptions
+    defaultJobOptions,
   );
 
   return document;

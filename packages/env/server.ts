@@ -2,11 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // App
-  NODE_ENV: z.enum([
-    "development",
-    "production",
-    "test",
-  ]),
+  NODE_ENV: z.enum(["development", "production", "test"]),
 
   PORT: z.coerce.number(),
 
@@ -46,7 +42,6 @@ const envSchema = z.object({
 
   COOKIE_DOMAIN: z.string(),
 
-
   //SSE
   SSE_HEARTBEAT_INTERVAL_MS: z.coerce.number(),
 
@@ -59,10 +54,8 @@ const envSchema = z.object({
 
   CHUNK_OVERLAP: z.coerce.number(),
 
-
   // file upload
   MAX_FILE_SIZE: z.coerce.number(),
-
 
   //Email
   RESEND_API_KEY: z.string(),
@@ -71,11 +64,8 @@ const envSchema = z.object({
 
   EMAIL_FROM_ADDRESS: z.email(),
 
-  
   //Workers
-  WORKER_CONCURRENCY: z.coerce.number()
+  WORKER_CONCURRENCY: z.coerce.number(),
 });
 
-export const env = envSchema.parse(
-  process.env
-);
+export const env = envSchema.parse(process.env);

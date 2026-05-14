@@ -3,17 +3,11 @@ import {
   processingRepository,
 } from "@repo/db/repositories";
 
-import {
-  fetchFileAsBuffer,
-} from "@repo/storage/fetchFile";
+import { fetchFileAsBuffer } from "@repo/storage/fetchFile";
 
-import {
-  parseFile,
-} from "@repo/parser/parse";
+import { parseFile } from "@repo/parser/parse";
 
-import {
-  summarizeDocument,
-} from "./summarizeDocument";
+import { summarizeDocument } from "./summarizeDocument";
 
 import {
   publishDocumentProcessing,
@@ -22,26 +16,17 @@ import {
   publishDocumentFailed,
 } from "@repo/events";
 
-export async function processDocument(
-  documentId: string,
-  userId: string
-) {
+export async function processDocument(documentId: string, userId: string) {
   /**
    * -----------------------------------
    * Fetch Document
    * -----------------------------------
    */
 
-  const document =
-    await documentRepository.findById(
-      documentId,
-      userId
-    );
+  const document = await documentRepository.findById(documentId, userId);
 
   if (!document) {
-    throw new Error(
-      "Document not found"
-    );
+    throw new Error("Document not found");
   }
 
   /**
@@ -50,13 +35,8 @@ export async function processDocument(
    * -----------------------------------
    */
 
-  if (
-    document.status === "COMPLETED"
-  ) {
-    console.log(
-      "Already processed:",
-      documentId
-    );
+  if (document.status === "COMPLETED") {
+    console.log("Already processed:", documentId);
 
     return;
   }
@@ -68,9 +48,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await documentRepository.markProcessing(
-      documentId
-    );
+    await documentRepository.markProcessing(documentId);
 
     /**
      * -----------------------------------
@@ -78,9 +56,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await publishDocumentProcessing(
-      documentId
-    );
+    await publishDocumentProcessing(documentId);
 
     /**
      * -----------------------------------
@@ -88,10 +64,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    const buffer =
-      await fetchFileAsBuffer(
-        document.fileUrl
-      );
+    const buffer = await fetchFileAsBuffer(document.fileUrl);
 
     /**
      * -----------------------------------
@@ -99,18 +72,10 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    const text = await parseFile(
-      buffer,
-      document.fileType
-    );
+    const text = await parseFile(buffer, document.fileType);
 
-    if (
-      !text ||
-      text.trim().length === 0
-    ) {
-      throw new Error(
-        "No readable content found"
-      );
+    if (!text || text.trim().length === 0) {
+      throw new Error("No readable content found");
     }
 
     /**
@@ -119,54 +84,33 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    let processingInitialized =
-      false;
+    let processingInitialized = false;
 
-    const result =
-      await summarizeDocument(
-        text,
-        {
-          onProgress: async (
-            completedChunks,
-            totalChunks
-          ) => {
-            /**
-             * Initialize Processing State
-             */
+    const result = await summarizeDocument(text, {
+      onProgress: async (completedChunks, totalChunks) => {
+        /**
+         * Initialize Processing State
+         */
 
-            if (
-              !processingInitialized
-            ) {
-              await processingRepository.start(
-                documentId,
-                totalChunks
-              );
+        if (!processingInitialized) {
+          await processingRepository.start(documentId, totalChunks);
 
-              processingInitialized =
-                true;
-            }
-
-            /**
-             * Persist Progress
-             */
-
-            await processingRepository.updateProgress(
-              documentId,
-              completedChunks
-            );
-
-            /**
-             * Publish Progress Event
-             */
-
-            await publishDocumentProgress(
-              documentId,
-              completedChunks,
-              totalChunks
-            );
-          },
+          processingInitialized = true;
         }
-      );
+
+        /**
+         * Persist Progress
+         */
+
+        await processingRepository.updateProgress(documentId, completedChunks);
+
+        /**
+         * Publish Progress Event
+         */
+
+        await publishDocumentProgress(documentId, completedChunks, totalChunks);
+      },
+    });
 
     /**
      * -----------------------------------
@@ -174,10 +118,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await documentRepository.markCompleted(
-      documentId,
-      result.summary
-    );
+    await documentRepository.markCompleted(documentId, result.summary);
 
     /**
      * -----------------------------------
@@ -185,9 +126,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await processingRepository.clear(
-      documentId
-    );
+    await processingRepository.clear(documentId);
 
     /**
      * -----------------------------------
@@ -195,20 +134,11 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await publishDocumentCompleted(
-      documentId,
-      result.summary
-    );
+    await publishDocumentCompleted(documentId, result.summary);
 
-    console.log(
-      "✅ Document processed:",
-      documentId
-    );
+    console.log("✅ Document processed:", documentId);
   } catch (err) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Unknown error";
+    const message = err instanceof Error ? err.message : "Unknown error";
 
     /**
      * -----------------------------------
@@ -216,10 +146,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await documentRepository.markFailed(
-      documentId,
-      message
-    );
+    await documentRepository.markFailed(documentId, message);
 
     /**
      * -----------------------------------
@@ -227,9 +154,7 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await processingRepository.clear(
-      documentId
-    );
+    await processingRepository.clear(documentId);
 
     /**
      * -----------------------------------
@@ -237,16 +162,9 @@ export async function processDocument(
      * -----------------------------------
      */
 
-    await publishDocumentFailed(
-      documentId,
-      message
-    );
+    await publishDocumentFailed(documentId, message);
 
-    console.error(
-      "❌ Processing failed:",
-      documentId,
-      message
-    );
+    console.error("❌ Processing failed:", documentId, message);
 
     throw err;
   }

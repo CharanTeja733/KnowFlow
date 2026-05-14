@@ -7,11 +7,7 @@ export enum DocumentEventType {
 
 export type DocumentStatusEvent = {
   type: DocumentEventType.STATUS;
-  status:
-    | "PENDING"
-    | "PROCESSING"
-    | "COMPLETED"
-    | "FAILED";
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 };
 
 export type DocumentProgressEvent = {

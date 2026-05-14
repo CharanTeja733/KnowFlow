@@ -14,7 +14,7 @@ export async function summarizeChunk(chunk: string) {
         content: chunk,
       },
     ],
-    temperature:aiConfig.summarization.temperature,
+    temperature: aiConfig.summarization.temperature,
   });
 
   return response.choices[0]?.message?.content || "";

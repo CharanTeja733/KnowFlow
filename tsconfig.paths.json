@@ -7,12 +7,11 @@
       "@repo/db/repositories/*": ["packages/db/repositories/*"],
       "@repo/db/repositories": ["packages/db/repositories/index.ts"],
 
-
       "@repo/queue": ["packages/queue"],
       "@repo/queue/document.queue": ["packages/queue/document.queue"],
       "@repo/queue/email.queue": ["packages/queue/email.queue"],
       "@repo/queue/*": ["packages/queue/*"],
-     
+
       "@repo/ai": ["packages/ai"],
       "@repo/ai/summarize": ["packages/ai/summarize"],
       "@repo/ai/chunk": ["packages/ai/chunk"],
@@ -28,9 +27,9 @@
       "@repo/storage/fetchFile": ["packages/storage/fetchFile"],
 
       "@repo/parser/parse": ["packages/parser/parse"],
-      
-       "@repo/events": ["packages/events/index.ts"],
-       "@repo/events/*": ["packages/events/*"],
+
+      "@repo/events": ["packages/events/index.ts"],
+      "@repo/events/*": ["packages/events/*"],
 
       "@repo/env": ["packages/env/index.ts"],
 

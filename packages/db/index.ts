@@ -4,8 +4,7 @@ import { Pool } from "pg";
 import { env } from "@repo/env";
 
 const pool = new Pool({
-  connectionString:
-    env.DATABASE_URL,
+  connectionString: env.DATABASE_URL,
 });
 
 const db = drizzle(pool);

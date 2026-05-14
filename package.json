@@ -5,16 +5,17 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
     "check-types": "turbo run check-types",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\""
   },
   "devDependencies": {
     "@types/multer": "^2.1.0",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
-    "prettier": "^3.7.4",
+    "prettier": "^3.8.3",
     "turbo": "^2.8.20",
     "typescript": "5.9.2"
   },

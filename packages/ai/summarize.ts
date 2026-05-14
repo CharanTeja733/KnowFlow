@@ -10,7 +10,7 @@ export async function summarize(text: string) {
 
   // ⚡ Parallel processing (IMPORTANT)
   const summaries = await Promise.all(
-    chunks.map((chunk) => summarizeChunk(chunk))
+    chunks.map((chunk) => summarizeChunk(chunk)),
   );
 
   const finalSummary = await combineSummaries(summaries);

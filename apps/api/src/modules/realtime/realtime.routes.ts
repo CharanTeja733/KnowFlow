@@ -1,18 +1,15 @@
 import { Router } from "express";
 
-import {
-  streamDocumentEventsController,
-} from "./realtime.controllers";
+import { streamDocumentEventsController } from "./realtime.controllers";
 
-import { ensureAuthenticated }
-from "../../middlewares/authentication.middlewares";
+import { ensureAuthenticated } from "../../middlewares/authentication.middlewares";
 
 const router = Router();
 
 router.get(
   "/documents/:documentId/events",
   ensureAuthenticated,
-  streamDocumentEventsController
+  streamDocumentEventsController,
 );
 
 export default router;

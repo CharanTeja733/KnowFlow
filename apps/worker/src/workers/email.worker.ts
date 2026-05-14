@@ -3,25 +3,23 @@ import { redisClient } from "@repo/redis/client";
 import { sendEmail } from "../services/email/sendEmail";
 
 import { deadLetterQueue } from "@repo/queue/dead-letter.queue";
-import  { QUEUE_NAMES,JOB_NAMES} from "@repo/queue/constants";
+import { QUEUE_NAMES, JOB_NAMES } from "@repo/queue/constants";
 
 import type { SendEmailJob, DeadLetterJob } from "@repo/queue/types";
-import {queueConfig} from "@repo/config";
-
+import { queueConfig } from "@repo/config";
 
 export const emailWorker = new Worker<SendEmailJob>(
   QUEUE_NAMES.EMAIL,
   async (job) => {
-    const {to, subject, html } = job.data;
+    const { to, subject, html } = job.data;
 
     await sendEmail(to, subject, html);
   },
   {
     connection: redisClient,
     concurrency: queueConfig.workerConcurrency, // process 5 jobs in parallel
-  }
+  },
 );
-
 
 emailWorker.on("failed", async (job, err) => {
   if (!job) return;

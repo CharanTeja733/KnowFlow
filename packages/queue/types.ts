@@ -4,9 +4,9 @@ export type ProcessDocumentJob = {
 };
 
 export type SendEmailJob = {
-    to: string,
-    subject: string,
-    html: string
+  to: string;
+  subject: string;
+  html: string;
 };
 
 // Dead letter job (generic + reusable)

@@ -6,14 +6,14 @@
 
 ## 🧠 Features
 
-* 📄 Upload and manage documents
-* ⚡ Asynchronous processing using BullMQ + Redis
-* 🤖 AI-powered document summarization (OpenAI)
-* 🧩 Chunking pipeline for large documents
-* 🔄 Real-time status updates via WebSockets + Redis Pub/Sub
-* 🗄️ PostgreSQL with Drizzle ORM
-* 🧱 Monorepo architecture using Turborepo
-* 🔐 User-scoped data access (secure by design)
+- 📄 Upload and manage documents
+- ⚡ Asynchronous processing using BullMQ + Redis
+- 🤖 AI-powered document summarization (OpenAI)
+- 🧩 Chunking pipeline for large documents
+- 🔄 Real-time status updates via WebSockets + Redis Pub/Sub
+- 🗄️ PostgreSQL with Drizzle ORM
+- 🧱 Monorepo architecture using Turborepo
+- 🔐 User-scoped data access (secure by design)
 
 ---
 
@@ -53,14 +53,14 @@ packages/
 
 ## ⚙️ Tech Stack
 
-* **Runtime**: Bun
-* **Backend**: Express (TypeScript)
-* **Database**: PostgreSQL (Drizzle ORM)
-* **Queue**: BullMQ + Redis
-* **AI**: OpenAI (gpt-4o-mini)
-* **Validation**: Zod
-* **Realtime**: WebSockets + Redis Pub/Sub
-* **Monorepo**: Turborepo
+- **Runtime**: Bun
+- **Backend**: Express (TypeScript)
+- **Database**: PostgreSQL (Drizzle ORM)
+- **Queue**: BullMQ + Redis
+- **AI**: OpenAI (gpt-4o-mini)
+- **Validation**: Zod
+- **Realtime**: WebSockets + Redis Pub/Sub
+- **Monorepo**: Turborepo
 
 ---
 
@@ -70,11 +70,11 @@ packages/
 2. Metadata stored in PostgreSQL (`PENDING`)
 3. Job added to Redis queue
 4. Worker processes document:
+   - Extract text
+   - Split into chunks
+   - Summarize each chunk (parallel)
+   - Combine summaries
 
-   * Extract text
-   * Split into chunks
-   * Summarize each chunk (parallel)
-   * Combine summaries
 5. Final summary stored in DB (`COMPLETED`)
 6. Real-time update sent via WebSocket
 
@@ -84,14 +84,14 @@ packages/
 
 ### Documents
 
-* `POST /documents` → Upload document
-* `GET /documents` → List user documents
-* `GET /documents/:id` → Get document details
-* `DELETE /documents/:id` → Delete document
+- `POST /documents` → Upload document
+- `GET /documents` → List user documents
+- `GET /documents/:id` → Get document details
+- `DELETE /documents/:id` → Delete document
 
 ### AI (Upcoming)
 
-* `POST /ai/ask` → Ask questions on documents (RAG)
+- `POST /ai/ask` → Ask questions on documents (RAG)
 
 ---
 
@@ -99,9 +99,9 @@ packages/
 
 KnowFlow uses **Redis Pub/Sub + WebSockets** to push updates instantly:
 
-* `PROCESSING`
-* `COMPLETED`
-* `FAILED`
+- `PROCESSING`
+- `COMPLETED`
+- `FAILED`
 
 No polling required 🚀
 
@@ -111,14 +111,14 @@ No polling required 🚀
 
 ### ✔️ Chunking Strategy
 
-* Large documents are split into overlapping chunks
-* Prevents token overflow
-* Preserves context
+- Large documents are split into overlapping chunks
+- Prevents token overflow
+- Preserves context
 
 ### ✔️ Map-Reduce Summarization
 
-* Chunk → summarize → combine
-* Scalable for large PDFs
+- Chunk → summarize → combine
+- Scalable for large PDFs
 
 ---
 
@@ -170,22 +170,22 @@ bun run dev:worker
 
 ## 🧪 Development Tips
 
-* Keep business logic in **services**
-* Controllers should only handle `req/res`
-* Always scope queries with `userId`
-* Never block API — use queues
-* Use Redis for caching and pub/sub
+- Keep business logic in **services**
+- Controllers should only handle `req/res`
+- Always scope queries with `userId`
+- Never block API — use queues
+- Use Redis for caching and pub/sub
 
 ---
 
 ## 🛠️ Future Improvements
 
-* 🔍 RAG-based question answering (pgvector)
-* 📊 Document insights dashboard
-* ☁️ S3 integration for file storage
-* 🔐 JWT authentication
-* 📈 Progress tracking (chunk-level updates)
-* 🧵 Streaming AI responses
+- 🔍 RAG-based question answering (pgvector)
+- 📊 Document insights dashboard
+- ☁️ S3 integration for file storage
+- 🔐 JWT authentication
+- 📈 Progress tracking (chunk-level updates)
+- 🧵 Streaming AI responses
 
 ---
 
@@ -205,9 +205,9 @@ MIT License
 
 KnowFlow is inspired by systems like:
 
-* Notion AI
-* ChatPDF
-* Perplexity AI
+- Notion AI
+- ChatPDF
+- Perplexity AI
 
 ---
 

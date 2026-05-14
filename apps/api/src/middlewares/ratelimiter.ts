@@ -3,7 +3,9 @@ import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "@repo/redis/client";
 
 const sendRedisCommand = (...args: string[]) =>
-  redisClient.call(args[0]!, ...args.slice(1)) as Promise<unknown> as Promise<import("rate-limit-redis").RedisReply>;
+  redisClient.call(args[0]!, ...args.slice(1)) as Promise<unknown> as Promise<
+    import("rate-limit-redis").RedisReply
+  >;
 
 /**
  * Global API Rate Limiter
@@ -51,7 +53,6 @@ export const loginLimiter = rateLimit({
 
   message: "Too many login attempts",
 });
-
 
 export const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

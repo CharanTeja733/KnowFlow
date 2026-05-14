@@ -18,17 +18,13 @@ import {
   verifyRefreshToken,
 } from "@/lib/jwt";
 
-import {
-  forgotPasswordTemplate,
-  verifyEmailTemplate,
-} from "../../lib/email";
+import { forgotPasswordTemplate, verifyEmailTemplate } from "../../lib/email";
 
-import {authConfig, urlConfig} from "@repo/config";
+import { authConfig, urlConfig } from "@repo/config";
 
 import { ApiError } from "@/lib/errors";
 
 import type { Register } from "./auth.schema";
-
 
 // Register user
 export async function registerUser(userDetails: Register) {
@@ -55,13 +51,12 @@ export async function registerUser(userDetails: Register) {
     password: hashedPassword,
     emailVerificationToken: hashedToken,
     emailVerificationExpires: new Date(
-      Date.now() + authConfig.emailVerification.expiresMs
+      Date.now() + authConfig.emailVerification.expiresMs,
     ),
   });
 
   // Send verification email
-  const verificationLink =
-    `${urlConfig.frontendUrl}/verify-email?token=${rawToken}`;
+  const verificationLink = `${urlConfig.frontendUrl}/verify-email?token=${rawToken}`;
 
   await emailQueue.add(
     "send-email",
@@ -70,21 +65,17 @@ export async function registerUser(userDetails: Register) {
       subject: "Verify Email",
       html: verifyEmailTemplate(verificationLink),
     },
-    defaultJobOptions
+    defaultJobOptions,
   );
 
   return user;
 }
 
-
 // Verify email
 export async function verifyEmailService(token: string) {
   const hashedToken = hashToken(token);
 
-  const user =
-    await userRepository.findByEmailVerificationToken(
-      hashedToken
-    );
+  const user = await userRepository.findByEmailVerificationToken(hashedToken);
 
   if (!user) {
     throw new ApiError(400, "Invalid token");
@@ -104,12 +95,8 @@ export async function verifyEmailService(token: string) {
   };
 }
 
-
 // Login user
-export async function loginUser(
-  email: string,
-  password: string
-) {
+export async function loginUser(email: string, password: string) {
   const user = await userRepository.findByEmail(email);
 
   if (!user) {
@@ -120,27 +107,22 @@ export async function loginUser(
     throw new ApiError(403, "Email not verified");
   }
 
-  const isPasswordCorrect =
-    await comparePassword(password, user.password);
+  const isPasswordCorrect = await comparePassword(password, user.password);
 
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid credentials");
   }
 
   // Generate tokens
-  const accessToken =
-    generateAccessToken(user.id, user.role);
+  const accessToken = generateAccessToken(user.id, user.role);
 
-  const {
-    token: refreshToken,
-    expiresAt,
-  } = generateRefreshToken(user.id);
+  const { token: refreshToken, expiresAt } = generateRefreshToken(user.id);
 
   // Store refresh token
   await userRepository.storeRefreshToken(
     user.id,
     hashToken(refreshToken),
-    expiresAt
+    expiresAt,
   );
 
   return {
@@ -155,21 +137,16 @@ export async function loginUser(
   };
 }
 
-
 // Refresh access token
-export async function refreshAccessToken(
-  oldRefreshToken: string
-) {
+export async function refreshAccessToken(oldRefreshToken: string) {
   if (!oldRefreshToken) {
     throw new ApiError(401, "Refresh token missing");
   }
 
   // Verify refresh token
-  const payload =
-    verifyRefreshToken(oldRefreshToken);
+  const payload = verifyRefreshToken(oldRefreshToken);
 
-  const user =
-    await userRepository.findById(payload.userId);
+  const user = await userRepository.findById(payload.userId);
 
   if (!user) {
     throw new ApiError(401, "User not found");
@@ -179,16 +156,12 @@ export async function refreshAccessToken(
     throw new ApiError(401, "No active session");
   }
 
-  if (
-    !user.refreshTokenExpires ||
-    user.refreshTokenExpires < new Date()
-  ) {
+  if (!user.refreshTokenExpires || user.refreshTokenExpires < new Date()) {
     throw new ApiError(401, "Refresh token expired");
   }
 
   // Detect token reuse
-  const hashedIncoming =
-    hashToken(oldRefreshToken);
+  const hashedIncoming = hashToken(oldRefreshToken);
 
   if (hashedIncoming !== user.refreshToken) {
     await userRepository.clearRefreshToken(user.id);
@@ -197,18 +170,14 @@ export async function refreshAccessToken(
   }
 
   // Rotate tokens
-  const {
-    token: newRefreshToken,
-    expiresAt,
-  } = generateRefreshToken(user.id);
+  const { token: newRefreshToken, expiresAt } = generateRefreshToken(user.id);
 
-  const newAccessToken =
-    generateAccessToken(user.id, user.role);
+  const newAccessToken = generateAccessToken(user.id, user.role);
 
   await userRepository.storeRefreshToken(
     user.id,
     hashToken(newRefreshToken),
-    expiresAt
+    expiresAt,
   );
 
   return {
@@ -217,12 +186,10 @@ export async function refreshAccessToken(
   };
 }
 
-
 // Logout user
 export async function logoutUser(userId: string) {
   await userRepository.clearRefreshToken(userId);
 }
-
 
 // Forgot password
 export async function forgotPassword(email: string) {
@@ -233,17 +200,11 @@ export async function forgotPassword(email: string) {
     return;
   }
 
-  const { rawToken, hashedToken, expiresAt } =
-    generateResetToken();
+  const { rawToken, hashedToken, expiresAt } = generateResetToken();
 
-  await userRepository.storePasswordResetToken(
-    user.id,
-    hashedToken,
-    expiresAt
-  );
+  await userRepository.storePasswordResetToken(user.id, hashedToken, expiresAt);
 
-  const resetURL =
-    `${urlConfig.frontendUrl}/reset-password?token=${rawToken}`;
+  const resetURL = `${urlConfig.frontendUrl}/reset-password?token=${rawToken}`;
 
   await emailQueue.add(
     "send-email",
@@ -252,39 +213,25 @@ export async function forgotPassword(email: string) {
       subject: "Reset Password",
       html: forgotPasswordTemplate(resetURL),
     },
-    defaultJobOptions
+    defaultJobOptions,
   );
 }
 
-
 // Reset password
-export async function resetPassword(
-  token: string,
-  newPassword: string
-) {
+export async function resetPassword(token: string, newPassword: string) {
   const hashedToken = hashToken(token);
 
-  const user =
-    await userRepository.findByPasswordResetToken(
-      hashedToken
-    );
+  const user = await userRepository.findByPasswordResetToken(hashedToken);
 
   if (!user) {
     throw new ApiError(400, "Invalid token");
   }
 
-  if (
-    !user.passwordResetExpires ||
-    user.passwordResetExpires < new Date()
-  ) {
+  if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
     throw new ApiError(400, "Token expired");
   }
 
-  const hashedPassword =
-    await hashPassword(newPassword);
+  const hashedPassword = await hashPassword(newPassword);
 
-  await userRepository.updatePassword(
-    user.id,
-    hashedPassword
-  );
+  await userRepository.updatePassword(user.id, hashedPassword);
 }

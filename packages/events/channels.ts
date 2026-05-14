@@ -1,2 +1,1 @@
-export const documentChannel = (documentId: string) =>
-  `document:${documentId}`;
+export const documentChannel = (documentId: string) => `document:${documentId}`;

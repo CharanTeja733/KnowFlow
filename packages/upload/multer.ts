@@ -7,11 +7,10 @@ const storage = multer.memoryStorage();
 
 // ✅ File validation
 const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
-
-  const allowedMimeTypes = uploadConfig.allowedMimeTypes 
+  const allowedMimeTypes = uploadConfig.allowedMimeTypes;
 
   if (!allowedMimeTypes.includes(file.mimetype)) {
-    return cb(new UploadError('Unsupported file type'));
+    return cb(new UploadError("Unsupported file type"));
   }
 
   cb(null, true);
@@ -21,7 +20,7 @@ const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
 export const upload = multer({
   storage,
   limits: {
-    fileSize: uploadConfig.maxFileSize
+    fileSize: uploadConfig.maxFileSize,
   },
   fileFilter,
 });

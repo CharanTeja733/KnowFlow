@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import {env} from "@repo/env";
+import { env } from "@repo/env";
 
 import {
   registerUser,
@@ -13,12 +13,8 @@ import {
 
 import { ApiError } from "@/lib/errors";
 
-
 // Register
-export async function registerController(
-  req: Request,
-  res: Response
-) {
+export async function registerController(req: Request, res: Response) {
   const { name, email, password } = req.body;
 
   await registerUser({
@@ -33,16 +29,11 @@ export async function registerController(
   });
 }
 
-
 // Verify email
-export async function verificationController(
-  req: Request,
-  res: Response
-) {
+export async function verificationController(req: Request, res: Response) {
   const token = req.query.token as string;
 
-  const result =
-    await verifyEmailService(token);
+  const result = await verifyEmailService(token);
 
   return res.status(200).json({
     success: true,
@@ -50,40 +41,24 @@ export async function verificationController(
   });
 }
 
-
 // Login
-export async function loginController(
-  req: Request,
-  res: Response
-) {
+export async function loginController(req: Request, res: Response) {
   const { email, password } = req.body;
 
-  const result =
-    await loginUser(email, password);
+  const result = await loginUser(email, password);
 
   // Store refresh token in cookie
-  res.cookie(
-  "refreshToken",
-  result.refreshToken,
-  {
+  res.cookie("refreshToken", result.refreshToken, {
     httpOnly: true,
 
-    secure:
-      env.NODE_ENV ===
-      "production",
+    secure: env.NODE_ENV === "production",
 
     sameSite: "strict",
 
-    domain:
-      env.NODE_ENV ===
-      "production"
-        ? env.COOKIE_DOMAIN
-        : undefined,
+    domain: env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined,
 
-    maxAge:
-      env.COOKIE_MAX_AGE,
-  }
-);
+    maxAge: env.COOKIE_MAX_AGE,
+  });
 
   return res.status(200).json({
     success: true,
@@ -92,50 +67,28 @@ export async function loginController(
   });
 }
 
-
 // Refresh access token
-export async function refreshTokenController(
-  req: Request,
-  res: Response
-) {
-  const refreshToken =
-    req.cookies.refreshToken as string;
+export async function refreshTokenController(req: Request, res: Response) {
+  const refreshToken = req.cookies.refreshToken as string;
 
   if (!refreshToken) {
-    throw new ApiError(
-      401,
-      "Refresh token missing"
-    );
+    throw new ApiError(401, "Refresh token missing");
   }
 
-  const tokens =
-    await refreshAccessToken(
-      refreshToken
-    );
+  const tokens = await refreshAccessToken(refreshToken);
 
   // Rotate refresh token cookie
-  res.cookie(
-    "refreshToken",
-    tokens.refreshToken,
-    {
-      httpOnly: true,
+  res.cookie("refreshToken", tokens.refreshToken, {
+    httpOnly: true,
 
-      secure:
-        env.NODE_ENV ===
-        "production",
+    secure: env.NODE_ENV === "production",
 
-      sameSite: "strict",
+    sameSite: "strict",
 
-      domain:
-        env.NODE_ENV ===
-        "production"
-          ? env.COOKIE_DOMAIN
-          : undefined,
+    domain: env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined,
 
-      maxAge:
-        env.COOKIE_MAX_AGE,
-    }
-  );
+    maxAge: env.COOKIE_MAX_AGE,
+  });
 
   return res.status(200).json({
     success: true,
@@ -143,36 +96,24 @@ export async function refreshTokenController(
   });
 }
 
-
 // Logout
-export async function logoutController(
-  req: Request,
-  res: Response
-) {
+export async function logoutController(req: Request, res: Response) {
   const userId = req.user?.id;
 
   if (!userId) {
-    throw new ApiError(
-      401,
-      "Unauthorized"
-    );
+    throw new ApiError(401, "Unauthorized");
   }
 
   await logoutUser(userId);
 
   // Clear refresh token cookie
-  res.clearCookie(
-    "refreshToken",
-    {
-      httpOnly: true,
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
 
-      secure:
-        process.env.NODE_ENV ===
-        "production",
+    secure: process.env.NODE_ENV === "production",
 
-      sameSite: "strict",
-    }
-  );
+    sameSite: "strict",
+  });
 
   return res.status(200).json({
     success: true,
@@ -180,12 +121,8 @@ export async function logoutController(
   });
 }
 
-
 // Forgot password
-export async function forgotPasswordController(
-  req: Request,
-  res: Response
-) {
+export async function forgotPasswordController(req: Request, res: Response) {
   const { email } = req.body;
 
   await forgotPassword(email);
@@ -193,17 +130,12 @@ export async function forgotPasswordController(
   return res.status(200).json({
     success: true,
 
-    message:
-      "If the email exists, a reset link has been sent",
+    message: "If the email exists, a reset link has been sent",
   });
 }
 
-
 // Reset password
-export async function resetPasswordController(
-  req: Request,
-  res: Response
-) {
+export async function resetPasswordController(req: Request, res: Response) {
   const { token, password } = req.body;
 
   await resetPassword(token, password);

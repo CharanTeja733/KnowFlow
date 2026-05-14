@@ -27,27 +27,43 @@ export async function uploadDocumentController(req: Request, res: Response) {
   });
 }
 
-export async function getDocumentsController(req: Request, res: Response, next: NextFunction) {
-    const userId = req.user?.id as string;
-    const documents = await services.getDocuments(userId);
-    return res.status(201).json({message: 'file uploaded successfully', documents});
+export async function getDocumentsController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const userId = req.user?.id as string;
+  const documents = await services.getDocuments(userId);
+  return res
+    .status(201)
+    .json({ message: "file uploaded successfully", documents });
 }
 
-export async function getDocumentController(req: Request, res: Response, next: NextFunction) {
-    const userId = req.user?.id as string;
-     const documentId = req.params.id as string;
-    const documentDetails = await services.getDocument(documentId, userId);
-    return res.status(201).json({message: 'file uploaded successfully', documentDetails});
+export async function getDocumentController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const userId = req.user?.id as string;
+  const documentId = req.params.id as string;
+  const documentDetails = await services.getDocument(documentId, userId);
+  return res
+    .status(201)
+    .json({ message: "file uploaded successfully", documentDetails });
 }
 
-export async function deleteDocumentController(req: Request, res: Response, next: NextFunction) {
-    const documentId = req.params.id as string;
-    const userId = req.user?.id as string;
-    try {
-        const documentDetails = await services.deleteDocument(documentId, userId);
-    } catch(err) {
-        throw new ApiError(404, 'Document not found');
-    }
-   
-    return res.status(201).json({});
+export async function deleteDocumentController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const documentId = req.params.id as string;
+  const userId = req.user?.id as string;
+  try {
+    const documentDetails = await services.deleteDocument(documentId, userId);
+  } catch (err) {
+    throw new ApiError(404, "Document not found");
+  }
+
+  return res.status(201).json({});
 }

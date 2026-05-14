@@ -3,11 +3,7 @@ import type { ZodTypeAny, infer as zInfer } from "zod";
 import { ApiError } from "../utils/ApiError";
 
 export function validate<T extends ZodTypeAny>(schema: T) {
-  return function (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  return function (req: Request, res: Response, next: NextFunction) {
     const result = schema.safeParse({
       body: req.body,
       query: req.query,

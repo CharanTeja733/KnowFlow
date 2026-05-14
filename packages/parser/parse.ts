@@ -2,7 +2,7 @@ import * as pdfParseModule from "pdf-parse";
 
 export async function parseFile(
   buffer: Buffer,
-  mimeType: string
+  mimeType: string,
 ): Promise<string> {
   if (mimeType === "application/pdf") {
     const pdfParse = (pdfParseModule as any).default ?? (pdfParseModule as any);

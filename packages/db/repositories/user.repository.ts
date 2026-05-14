@@ -1,12 +1,8 @@
 import db from "../index";
 
-import {
-  userTable,
-} from "../schema";
+import { userTable } from "../schema";
 
-import {
-  eq,
-} from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export const userRepository = {
   /**
@@ -15,15 +11,11 @@ export const userRepository = {
    * -----------------------------------
    */
 
-  async findByEmail(
-    email: string
-  ) {
+  async findByEmail(email: string) {
     const [user] = await db
       .select()
       .from(userTable)
-      .where(
-        eq(userTable.email, email)
-      )
+      .where(eq(userTable.email, email))
       .limit(1);
 
     return user;
@@ -58,22 +50,16 @@ export const userRepository = {
     emailVerificationToken?: string | null;
     emailVerificationExpires?: Date | null;
   }) {
-    const [user] = await db
-      .insert(userTable)
-      .values(data)
-      .returning({
-        id: userTable.id,
-        name: userTable.name,
-        email: userTable.email,
-        role: userTable.role,
-        isEmailVerified:
-          userTable.isEmailVerified,
-      });
+    const [user] = await db.insert(userTable).values(data).returning({
+      id: userTable.id,
+      name: userTable.name,
+      email: userTable.email,
+      role: userTable.role,
+      isEmailVerified: userTable.isEmailVerified,
+    });
 
     if (!user) {
-      throw new Error(
-        "Failed to create user"
-      );
+      throw new Error("Failed to create user");
     }
 
     return user;
@@ -85,18 +71,11 @@ export const userRepository = {
    * -----------------------------------
    */
 
-  async findByEmailVerificationToken(
-    token: string
-  ) {
+  async findByEmailVerificationToken(token: string) {
     const [user] = await db
       .select()
       .from(userTable)
-      .where(
-        eq(
-          userTable.emailVerificationToken,
-          token
-        )
-      )
+      .where(eq(userTable.emailVerificationToken, token))
       .limit(1);
 
     return user;
@@ -108,21 +87,15 @@ export const userRepository = {
    * -----------------------------------
    */
 
-  async markEmailVerified(
-    userId: string
-  ) {
+  async markEmailVerified(userId: string) {
     await db
       .update(userTable)
       .set({
         isEmailVerified: true,
-        emailVerificationToken:
-          null,
-        emailVerificationExpires:
-          null,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
       })
-      .where(
-        eq(userTable.id, userId)
-      );
+      .where(eq(userTable.id, userId));
   },
 
   /**
@@ -134,18 +107,15 @@ export const userRepository = {
   async storeRefreshToken(
     userId: string,
     hashedToken: string,
-    expiresAt: Date
+    expiresAt: Date,
   ) {
     await db
       .update(userTable)
       .set({
         refreshToken: hashedToken,
-        refreshTokenExpires:
-          expiresAt,
+        refreshTokenExpires: expiresAt,
       })
-      .where(
-        eq(userTable.id, userId)
-      );
+      .where(eq(userTable.id, userId));
   },
 
   /**
@@ -154,18 +124,14 @@ export const userRepository = {
    * -----------------------------------
    */
 
-  async clearRefreshToken(
-    userId: string
-  ) {
+  async clearRefreshToken(userId: string) {
     await db
       .update(userTable)
       .set({
         refreshToken: null,
         refreshTokenExpires: null,
       })
-      .where(
-        eq(userTable.id, userId)
-      );
+      .where(eq(userTable.id, userId));
   },
 
   /**
@@ -177,20 +143,16 @@ export const userRepository = {
   async storePasswordResetToken(
     userId: string,
     hashedToken: string,
-    expiresAt: Date
+    expiresAt: Date,
   ) {
     await db
       .update(userTable)
       .set({
-        passwordResetToken:
-          hashedToken,
+        passwordResetToken: hashedToken,
 
-        passwordResetExpires:
-          expiresAt,
+        passwordResetExpires: expiresAt,
       })
-      .where(
-        eq(userTable.id, userId)
-      );
+      .where(eq(userTable.id, userId));
   },
 
   /**
@@ -199,18 +161,11 @@ export const userRepository = {
    * -----------------------------------
    */
 
-  async findByPasswordResetToken(
-    token: string
-  ) {
+  async findByPasswordResetToken(token: string) {
     const [user] = await db
       .select()
       .from(userTable)
-      .where(
-        eq(
-          userTable.passwordResetToken,
-          token
-        )
-      )
+      .where(eq(userTable.passwordResetToken, token))
       .limit(1);
 
     return user;
@@ -222,28 +177,20 @@ export const userRepository = {
    * -----------------------------------
    */
 
-  async updatePassword(
-    userId: string,
-    hashedPassword: string
-  ) {
+  async updatePassword(userId: string, hashedPassword: string) {
     await db
       .update(userTable)
       .set({
         password: hashedPassword,
 
-        passwordResetToken:
-          null,
+        passwordResetToken: null,
 
-        passwordResetExpires:
-          null,
+        passwordResetExpires: null,
 
         refreshToken: null,
 
-        refreshTokenExpires:
-          null,
+        refreshTokenExpires: null,
       })
-      .where(
-        eq(userTable.id, userId)
-      );
+      .where(eq(userTable.id, userId));
   },
 };

@@ -1,19 +1,20 @@
 import { openai } from "./client";
+import { aiConfig } from "@repo/config";
 
 export async function summarizeChunk(chunk: string) {
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: aiConfig.summarization.model,
     messages: [
       {
         role: "system",
-        content: "Summarize this part of a document briefly.",
+        content: aiConfig.prompts.summarizeChunk,
       },
       {
         role: "user",
         content: chunk,
       },
     ],
-    temperature: 0.3,
+    temperature:aiConfig.summarization.temperature,
   });
 
   return response.choices[0]?.message?.content || "";

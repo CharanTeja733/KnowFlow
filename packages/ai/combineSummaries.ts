@@ -1,21 +1,15 @@
 import { openai } from "./client";
+import { aiConfig } from "@repo/config";
 
 export async function combineSummaries(summaries: string[]) {
   const combinedText = summaries.join("\n");
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: aiConfig.summarization.model,
     messages: [
       {
         role: "system",
-        content: `
-You are an expert summarizer.
-
-Combine the following partial summaries into:
-- Key Points
-- Insights
-- Final Conclusion
-        `,
+        content: aiConfig.prompts.combineSummary,
       },
       {
         role: "user",

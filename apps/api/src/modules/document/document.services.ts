@@ -11,6 +11,12 @@ import { documentRepository } from "@repo/db/repositories";
 
 import { generateUploadUrl } from "@repo/storage/presigned";
 
+import { verifyUploadedObject } from "@repo/storage/verify";
+
+import { storageConfig } from "@repo/config/storage.config";
+
+import { ApiError } from "@/lib/errors";
+
 type CreateDocumentParams = CreateDocumentInput & {
   userId: string;
 };
@@ -22,7 +28,34 @@ export async function createDocument({
   fileSize,
   fileType,
 }: CreateDocumentParams) {
-  // Create DB record
+  // Verify key belongs to user
+  if (!storageKey.startsWith(`documents/${userId}/`)) {
+    throw new ApiError(403, "Invalid storage key");
+  }
+
+  // Verify object exists in S3
+  const uploadedFile = await verifyUploadedObject(storageKey);
+
+  if (!uploadedFile.exists) {
+    throw new ApiError(400, "Uploaded file not found");
+  }
+
+  // Verify size
+  if (uploadedFile.fileSize !== fileSize) {
+    throw new ApiError(400, "Invalid file size");
+  }
+
+  // Verify mime type
+  if (uploadedFile.contentType !== fileType) {
+    throw new ApiError(400, "Invalid file type");
+  }
+
+  // Additional backend validation
+  if (!storageConfig.allowedMimeTypes.includes(fileType)) {
+    throw new ApiError(400, "Unsupported file type");
+  }
+
+  // Create document
   const document = await documentRepository.create({
     userId,
     name,
@@ -31,15 +64,13 @@ export async function createDocument({
     fileType,
   });
 
-  // Queue processing job
+  // Queue worker job
   await documentQueue.add(
     "process-document",
     {
       documentId: document.id,
-
       userId,
     },
-
     defaultJobOptions,
   );
 
@@ -62,12 +93,15 @@ export async function deleteDocument(documentId: string, userId: string) {
   }
 }
 
-export async function generatePresignedUrl(data: GeneratePresignedUrlInput) {
-  const result = await generateUploadUrl({
+export async function generatePresignedUrl(
+  userId: string,
+  data: GeneratePresignedUrlInput,
+) {
+  return generateUploadUrl({
+    userId,
+
     fileName: data.fileName,
 
     mimeType: data.mimeType,
   });
-
-  return result;
 }

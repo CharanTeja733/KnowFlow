@@ -6,7 +6,7 @@ import {
   deleteDocumentSchema,
   getDocumentSchema,
   generatePresignedUrlSchema,
-  createDocumentSchema
+  createDocumentSchema,
 } from "./document.schema";
 // import { upload } from "@repo/upload/multer";
 
@@ -15,10 +15,8 @@ const router = express.Router();
 router.use(ensureAuthenticated);
 router.post(
   "/",
-  validate(
-    createDocumentSchema
-  ),
-  controllers.createDocumentController
+  validate(createDocumentSchema),
+  controllers.createDocumentController,
 );
 
 router.get("/", controllers.getDocumentsController);

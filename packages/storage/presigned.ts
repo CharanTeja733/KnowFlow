@@ -9,11 +9,15 @@ import { env } from "@repo/env";
 import { storageConfig } from "@repo/config/storage.config";
 
 type GenerateUploadUrlParams = {
+  userId: string;
+
   fileName: string;
+
   mimeType: string;
 };
 
 export async function generateUploadUrl({
+  userId,
   fileName,
   mimeType,
 }: GenerateUploadUrlParams) {
@@ -22,10 +26,10 @@ export async function generateUploadUrl({
     throw new Error("Unsupported file type");
   }
 
-  // Generate storage key
-  const key = `documents/${randomUUID()}-${fileName}`;
+  // Generate object key
+  const key = `documents/${userId}/${randomUUID()}-${fileName}`;
 
-  // Generate presigned POST
+  // Create presigned POST
   const { url, fields } = await createPresignedPost(s3, {
     Bucket: env.AWS_S3_BUCKET,
 

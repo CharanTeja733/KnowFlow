@@ -2,22 +2,14 @@ import type { Request, Response } from "express";
 import { ApiError } from "../../utils/ApiError";
 import * as services from "./document.services";
 
-export async function
-createDocumentController(
-  req: Request,
-  res: Response
-) {
-  const userId =
-    req.user!.id;
+export async function createDocumentController(req: Request, res: Response) {
+  const userId = req.user!.id;
 
-  const document =
-    await services.createDocument(
-      {
-        userId,
+  const document = await services.createDocument({
+    userId,
 
-        ...req.body,
-      }
-    );
+    ...req.body,
+  });
 
   res.status(201).json({
     success: true,
@@ -58,7 +50,8 @@ export async function generatePresignedUrlController(
   req: Request,
   res: Response,
 ) {
-  const result = await services.generatePresignedUrl(req.body);
+  const userId = req.user!.id;
+  const result = await services.generatePresignedUrl(userId, req.body);
 
   res.status(200).json({
     success: true,

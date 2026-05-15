@@ -26,7 +26,7 @@
       "@repo/storage/upload": ["packages/storage/upload"],
       "@repo/storage/fetchFile": ["packages/storage/fetchFile"],
 
-      "@repo/parser/parse": ["packages/parser/parse"],
+      "@repo/parser/*": ["packages/parser/*"],
 
       "@repo/events": ["packages/events/index.ts"],
       "@repo/events/*": ["packages/events/*"],

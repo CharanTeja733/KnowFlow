@@ -6,6 +6,8 @@ import {
 import { downloadFile } from "@repo/storage/download";
 
 import { parseFile } from "@repo/parser/parse";
+import { validateFile } from "@repo/parser/validate";
+import { parserConfig } from "@repo/config/parser.config";
 
 import { summarizeDocument } from "./summarizeDocument";
 
@@ -65,6 +67,17 @@ export async function processDocument(documentId: string, userId: string) {
      */
 
     const buffer = await downloadFile(document.storageKey);
+    /**
+     * -----------------------------------
+     * Validate File
+     * -----------------------------------
+     */
+
+    await validateFile({
+      buffer,
+
+      expectedMimeType: document.fileType,
+    });
 
     /**
      * -----------------------------------
@@ -74,10 +87,9 @@ export async function processDocument(documentId: string, userId: string) {
 
     const text = await parseFile(buffer, document.fileType);
 
-    if (!text || text.trim().length === 0) {
-      throw new Error("No readable content found");
+    if (!text || text.trim().length < parserConfig.minExtractedTextLength) {
+      throw new Error("Document contains insufficient readable content");
     }
-
     /**
      * -----------------------------------
      * Summarize Document

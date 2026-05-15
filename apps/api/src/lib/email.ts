@@ -6,7 +6,6 @@ export function verifyEmailTemplate(verificationURL: string) {
       `;
 }
 
-
 export function forgotPasswordTemplate(resetURL: string) {
   return `
         <p>You requested a password reset</p>

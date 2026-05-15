@@ -34,7 +34,9 @@
       "@repo/env": ["packages/env/index.ts"],
 
       "@repo/config/*": ["packages/config/*"],
-      "@repo/config": ["packages/config/index.ts"]
+      "@repo/config": ["packages/config/index.ts"],
+
+      "@repo/storage/*": ["packages/storage/*"]
     }
   }
 }

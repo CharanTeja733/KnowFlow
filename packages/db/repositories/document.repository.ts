@@ -4,16 +4,28 @@ import { documentTable } from "../schema";
 
 import { eq, and } from "drizzle-orm";
 
+type CreateDocumentParams = {
+  userId: string;
+
+  name: string;
+
+  storageKey: string;
+
+  fileSize: number;
+
+  fileType: string;
+};
+
 export const documentRepository = {
-  async create(data: {
-    userId: string;
-    name: string;
-    fileUrl: string;
-    fileSize: number;
-    fileType: string;
-    status: "PENDING";
-  }) {
-    const [document] = await db.insert(documentTable).values(data).returning();
+  async create(data: CreateDocumentParams) {
+    const [document] = await db
+      .insert(documentTable)
+      .values({
+        ...data,
+
+        status: "PENDING",
+      })
+      .returning();
 
     if (!document) {
       throw new Error("Failed to create document");

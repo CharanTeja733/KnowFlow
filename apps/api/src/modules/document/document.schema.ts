@@ -1,12 +1,5 @@
 import { z } from "zod";
 
-export const uploadDocumentSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  fileUrl: z.url("Invalid file URL"),
-  fileSize: z.number().positive("File size must be > 0"),
-  fileType: z.string().min(1, "File type is required"),
-});
-
 export const getDocumentSchema = z.object({
   params: z.object({
     id: z.uuid(),
@@ -20,14 +13,27 @@ export const deleteDocumentSchema = z.object({
 });
 
 export const createDocumentSchema = z.object({
-  userId: z.string(),
-  fileName: z.string(),
-  mimeType: z.string(),
-  size: z.number().positive(),
+  body: z.object({
+    name: z.string().min(1),
+
+    storageKey: z.string().min(1),
+
+    fileSize: z.number().positive(),
+
+    fileType: z.string().min(1),
+  }),
 });
 
-export type CreateDocument = z.infer<typeof createDocumentSchema> & {
-  fileBuffer: Buffer;
-};
+export type CreateDocumentInput = z.infer<typeof createDocumentSchema>["body"];
 
-export type Document = z.infer<typeof uploadDocumentSchema>;
+export const generatePresignedUrlSchema = z.object({
+  body: z.object({
+    fileName: z.string().min(1),
+
+    mimeType: z.string().min(1),
+  }),
+});
+
+export type GeneratePresignedUrlInput = z.infer<
+  typeof generatePresignedUrlSchema
+>["body"];

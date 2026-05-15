@@ -5,13 +5,22 @@ import { validate } from "../../middlewares/validation.middleware";
 import {
   deleteDocumentSchema,
   getDocumentSchema,
+  generatePresignedUrlSchema,
+  createDocumentSchema
 } from "./document.schema";
-import { upload } from "@repo/upload/multer";
+// import { upload } from "@repo/upload/multer";
 
 const router = express.Router();
 
 router.use(ensureAuthenticated);
-router.post("/", upload.single("file"), controllers.uploadDocumentController);
+router.post(
+  "/",
+  validate(
+    createDocumentSchema
+  ),
+  controllers.createDocumentController
+);
+
 router.get("/", controllers.getDocumentsController);
 router.get(
   "/:id",
@@ -23,5 +32,12 @@ router.delete(
   validate(deleteDocumentSchema),
   controllers.deleteDocumentController,
 );
+router.post(
+  "/presigned-url",
+  validate(generatePresignedUrlSchema),
+  controllers.generatePresignedUrlController,
+);
 
 export default router;
+
+// router.post("/", upload.single("file"), controllers.uploadDocumentController);

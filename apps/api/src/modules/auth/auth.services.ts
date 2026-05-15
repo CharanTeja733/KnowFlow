@@ -18,14 +18,13 @@ import {
   verifyRefreshToken,
 } from "@/lib/jwt";
 
-import { forgotPasswordTemplate,verifyEmailTemplate } from "../../lib/email";
+import { forgotPasswordTemplate, verifyEmailTemplate } from "../../lib/email";
 
 import { authConfig } from "@repo/config";
 import { buildResetPasswordUrl, buildEmailVerificationUrl } from "./auth.urls";
 import { ApiError } from "@/lib/errors";
 
 import type { Register } from "./auth.schema";
-
 
 // Register user
 export async function registerUser(userDetails: Register) {

@@ -3,7 +3,7 @@ import {
   processingRepository,
 } from "@repo/db/repositories";
 
-import { fetchFileAsBuffer } from "@repo/storage/fetchFile";
+import {downloadFile} from "@repo/storage/download";
 
 import { parseFile } from "@repo/parser/parse";
 
@@ -64,7 +64,7 @@ export async function processDocument(documentId: string, userId: string) {
      * -----------------------------------
      */
 
-    const buffer = await fetchFileAsBuffer(document.fileUrl);
+    const buffer = await downloadFile(document.storageKey)
 
     /**
      * -----------------------------------

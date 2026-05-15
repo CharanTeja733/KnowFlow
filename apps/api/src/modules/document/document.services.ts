@@ -1,6 +1,7 @@
-import type { CreateDocument, Document } from "./document.schema";
-
-import { uploadToS3 } from "@repo/storage/upload";
+import type {
+  GeneratePresignedUrlInput,
+  CreateDocumentInput,
+} from "./document.schema";
 
 import { documentQueue } from "@repo/queue/document.queue";
 
@@ -8,17 +9,41 @@ import { defaultJobOptions } from "@repo/queue/base";
 
 import { documentRepository } from "@repo/db/repositories";
 
-export async function uploadDocument(document: Document, userId: string) {
-  const createdDocument = await documentRepository.create({
-    ...document,
+import { generateUploadUrl } from "@repo/storage/presigned";
+
+type CreateDocumentParams = CreateDocumentInput & {
+  userId: string;
+};
+
+export async function createDocument({
+  userId,
+  name,
+  storageKey,
+  fileSize,
+  fileType,
+}: CreateDocumentParams) {
+  // Create DB record
+  const document = await documentRepository.create({
     userId,
-    status: "PENDING",
+    name,
+    storageKey,
+    fileSize,
+    fileType,
   });
 
-  return {
-    documentId: createdDocument.id,
-    name: createdDocument.name,
-  };
+  // Queue processing job
+  await documentQueue.add(
+    "process-document",
+    {
+      documentId: document.id,
+
+      userId,
+    },
+
+    defaultJobOptions,
+  );
+
+  return document;
 }
 
 export async function getDocuments(userId: string) {
@@ -37,52 +62,12 @@ export async function deleteDocument(documentId: string, userId: string) {
   }
 }
 
-export async function createDocument({
-  userId,
-  fileBuffer,
-  fileName,
-  mimeType,
-  size,
-}: CreateDocument) {
-  /**
-   * Upload File
-   */
+export async function generatePresignedUrl(data: GeneratePresignedUrlInput) {
+  const result = await generateUploadUrl({
+    fileName: data.fileName,
 
-  const fileUrl = await uploadToS3({
-    buffer: fileBuffer,
-    fileName,
-    mimeType,
+    mimeType: data.mimeType,
   });
 
-  /**
-   * Persist Document
-   */
-
-  const document = await documentRepository.create({
-    userId,
-    name: fileName,
-    fileUrl,
-    fileSize: size,
-    fileType: mimeType,
-    status: "PENDING",
-  });
-
-  if (!document) {
-    throw new Error("Failed to create document");
-  }
-
-  /**
-   * Queue Processing Job
-   */
-
-  await documentQueue.add(
-    "process-document",
-    {
-      documentId: document.id,
-      userId,
-    },
-    defaultJobOptions,
-  );
-
-  return document;
+  return result;
 }

@@ -1,16 +1,13 @@
-import type { Request, Response} from "express";
+import type { Request, Response } from "express";
 
-export async function notFoundHandler(
-  req: Request,
-  res: Response,
-) {
+export async function notFoundHandler(req: Request, res: Response) {
   return res.status(404).json({ error: "route not found" });
 }
 
 export async function globalErrorHandler(
   err: any,
   req: Request,
-  res: Response
+  res: Response,
 ) {
   const statusCode = err.statusCode || 500;
 

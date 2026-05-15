@@ -26,7 +26,7 @@ const envSchema = z.object({
 
   AWS_REGION: z.string(),
 
-  AWS_BUCKET_NAME: z.string(),
+  AWS_S3_BUCKET: z.string(),
 
   // JWT
   JWT_ACCESS_SECRET: z.string(),

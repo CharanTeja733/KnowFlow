@@ -2,35 +2,30 @@ import type { Request, Response } from "express";
 import { ApiError } from "../../utils/ApiError";
 import * as services from "./document.services";
 
-export async function uploadDocumentController(req: Request, res: Response) {
-  const userId = req.user!.id;
+export async function
+createDocumentController(
+  req: Request,
+  res: Response
+) {
+  const userId =
+    req.user!.id;
 
-  if (!userId) {
-    throw new ApiError(401, "Unauthorized");
-  }
-  //file property added by multer
-  if (!req.file) {
-    throw new ApiError(400, "File is required");
-  }
+  const document =
+    await services.createDocument(
+      {
+        userId,
 
-  const documentDetails = await services.createDocument({
-    userId,
-    fileBuffer: req.file.buffer,
-    fileName: req.file.originalname,
-    mimeType: req.file.mimetype,
-    size: req.file.size,
-  });
+        ...req.body,
+      }
+    );
 
-  return res.status(201).json({
-    message: "File uploaded successfully",
-    documentDetails,
+  res.status(201).json({
+    success: true,
+    data: document,
   });
 }
 
-export async function getDocumentsController(
-  req: Request,
-  res: Response,
-) {
+export async function getDocumentsController(req: Request, res: Response) {
   const userId = req.user?.id as string;
   const documents = await services.getDocuments(userId);
   return res
@@ -38,10 +33,7 @@ export async function getDocumentsController(
     .json({ message: "file uploaded successfully", documents });
 }
 
-export async function getDocumentController(
-  req: Request,
-  res: Response,
-) {
+export async function getDocumentController(req: Request, res: Response) {
   const userId = req.user?.id as string;
   const documentId = req.params.id as string;
   const documentDetails = await services.getDocument(documentId, userId);
@@ -50,10 +42,7 @@ export async function getDocumentController(
     .json({ message: "file uploaded successfully", documentDetails });
 }
 
-export async function deleteDocumentController(
-  req: Request,
-  res: Response,
-) {
+export async function deleteDocumentController(req: Request, res: Response) {
   const documentId = req.params.id as string;
   const userId = req.user?.id as string;
   try {
@@ -63,4 +52,16 @@ export async function deleteDocumentController(
   }
 
   return res.status(201).json({});
+}
+
+export async function generatePresignedUrlController(
+  req: Request,
+  res: Response,
+) {
+  const result = await services.generatePresignedUrl(req.body);
+
+  res.status(200).json({
+    success: true,
+    data: result,
+  });
 }

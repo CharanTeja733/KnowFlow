@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import { ApiError } from "../../utils/ApiError";
 import * as services from "./document.services";
 
@@ -8,7 +8,7 @@ export async function uploadDocumentController(req: Request, res: Response) {
   if (!userId) {
     throw new ApiError(401, "Unauthorized");
   }
-
+  //file property added by multer
   if (!req.file) {
     throw new ApiError(400, "File is required");
   }
@@ -30,7 +30,6 @@ export async function uploadDocumentController(req: Request, res: Response) {
 export async function getDocumentsController(
   req: Request,
   res: Response,
-  next: NextFunction,
 ) {
   const userId = req.user?.id as string;
   const documents = await services.getDocuments(userId);
@@ -42,7 +41,6 @@ export async function getDocumentsController(
 export async function getDocumentController(
   req: Request,
   res: Response,
-  next: NextFunction,
 ) {
   const userId = req.user?.id as string;
   const documentId = req.params.id as string;
@@ -55,13 +53,12 @@ export async function getDocumentController(
 export async function deleteDocumentController(
   req: Request,
   res: Response,
-  next: NextFunction,
 ) {
   const documentId = req.params.id as string;
   const userId = req.user?.id as string;
   try {
-    const documentDetails = await services.deleteDocument(documentId, userId);
-  } catch (err) {
+    await services.deleteDocument(documentId, userId);
+  } catch {
     throw new ApiError(404, "Document not found");
   }
 

@@ -1,12 +1,10 @@
 import { z } from "zod";
 
 export const uploadDocumentSchema = z.object({
-  body: z.object({
-    name: z.string().min(1, "Name is required"),
-    fileUrl: z.url("Invalid file URL"),
-    fileSize: z.number().positive("File size must be > 0"),
-    fileType: z.string().min(1, "File type is required"),
-  }),
+  name: z.string().min(1, "Name is required"),
+  fileUrl: z.url("Invalid file URL"),
+  fileSize: z.number().positive("File size must be > 0"),
+  fileType: z.string().min(1, "File type is required"),
 });
 
 export const getDocumentSchema = z.object({
@@ -32,4 +30,4 @@ export type CreateDocument = z.infer<typeof createDocumentSchema> & {
   fileBuffer: Buffer;
 };
 
-export type Document = z.infer<typeof uploadDocumentSchema>["body"];
+export type Document = z.infer<typeof uploadDocumentSchema>;

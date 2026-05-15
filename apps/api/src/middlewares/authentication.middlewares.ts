@@ -17,11 +17,11 @@ export async function authenticationMiddleware(
     return res.status(400).json({ error: "Token should start with Bearer" });
   }
 
-  const [_, token] = bearerToken.split(" ");
+  const [, token] = bearerToken.split(" ");
   let decoded: JWTPayload;
   try {
     decoded = decodeUserToken(token!);
-  } catch (err) {
+  } catch {
     return next(new ApiError(400, "invalid json token"));
   }
 

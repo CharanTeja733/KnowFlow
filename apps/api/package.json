@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "bun -watch ./src/server.ts",
-    "start": "bun ./src/server.ts"
+    "start": "bun ./src/server.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

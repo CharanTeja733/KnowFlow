@@ -5,7 +5,6 @@ import { validate } from "../../middlewares/validation.middleware";
 import {
   deleteDocumentSchema,
   getDocumentSchema,
-  uploadDocumentSchema,
 } from "./document.schema";
 import { upload } from "@repo/upload/multer";
 

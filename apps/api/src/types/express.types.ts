@@ -1,3 +1,6 @@
+/* eslint-disable
+@typescript-eslint/no-namespace */
+
 import type { JWTPayload } from "../utils/token";
 
 declare global {

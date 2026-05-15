@@ -6,9 +6,6 @@ import {
   boolean,
   text,
   pgEnum,
-  integer,
-  vector,
-  date,
 } from "drizzle-orm/pg-core";
 
 export const roles = pgEnum("Role", ["USER", "ADMIN"]);

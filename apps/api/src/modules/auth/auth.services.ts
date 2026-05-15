@@ -18,13 +18,14 @@ import {
   verifyRefreshToken,
 } from "@/lib/jwt";
 
-import { forgotPasswordTemplate, verifyEmailTemplate } from "../../lib/email";
+import { forgotPasswordTemplate,verifyEmailTemplate } from "../../lib/email";
 
-import { authConfig, urlConfig } from "@repo/config";
-
+import { authConfig } from "@repo/config";
+import { buildResetPasswordUrl, buildEmailVerificationUrl } from "./auth.urls";
 import { ApiError } from "@/lib/errors";
 
 import type { Register } from "./auth.schema";
+
 
 // Register user
 export async function registerUser(userDetails: Register) {
@@ -56,8 +57,7 @@ export async function registerUser(userDetails: Register) {
   });
 
   // Send verification email
-  const verificationLink = `${urlConfig.frontendUrl}/verify-email?token=${rawToken}`;
-
+  const verificationLink = buildEmailVerificationUrl(rawToken);
   await emailQueue.add(
     "send-email",
     {
@@ -204,7 +204,7 @@ export async function forgotPassword(email: string) {
 
   await userRepository.storePasswordResetToken(user.id, hashedToken, expiresAt);
 
-  const resetURL = `${urlConfig.frontendUrl}/reset-password?token=${rawToken}`;
+  const resetURL = buildResetPasswordUrl(rawToken);
 
   await emailQueue.add(
     "send-email",

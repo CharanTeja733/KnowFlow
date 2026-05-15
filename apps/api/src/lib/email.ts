@@ -1,12 +1,11 @@
-export async function sendEmail(to: string, subject: string, html: string) {}
-
-export function verifyEmailTemplate(link: string) {
-  return "link";
+export function verifyEmailTemplate(verificationURL: string) {
+  return `
+        <p>Verfication Email</p>
+        <a href="${verificationURL}">Verify Email</a>
+        <p>This link expires in 24 hours</p>
+      `;
 }
 
-export function resetPasswordTemplate(link: string) {
-  return "link";
-}
 
 export function forgotPasswordTemplate(resetURL: string) {
   return `

@@ -1,22 +1,22 @@
-import { chunkText } from "./chunk";
-import { summarizeChunk } from "./summarizeChunk";
-import { combineSummaries } from "./combineSummaries";
-import pLimit from "p-limit";
+// import { chunkText } from "./chunk";
+// import { summarizeChunk } from "./summarizeChunk";
+// import { combineSummaries } from "./combineSummaries";
+// import pLimit from "p-limit";
 
-export async function summarize(text: string) {
-  const chunks = chunkText(text);
+// export async function summarize(text: string) {
+//   const chunks = chunkText(text);
 
-  const limit = pLimit(3); // max 3 parallel calls
+//   const limit = pLimit(3); // max 3 parallel calls
 
-  // ⚡ Parallel processing (IMPORTANT)
-  const summaries = await Promise.all(
-    chunks.map((chunk) => summarizeChunk(chunk)),
-  );
+//   // ⚡ Parallel processing (IMPORTANT)
+//   const summaries = await Promise.all(
+//     chunks.map((chunk) => summarizeChunk(chunk)),
+//   );
 
-  const finalSummary = await combineSummaries(summaries);
+//   const finalSummary = await combineSummaries(summaries);
 
-  return finalSummary;
-}
+//   return finalSummary;
+// }
 
 /* for single ai call
 import { openai } from "./client";

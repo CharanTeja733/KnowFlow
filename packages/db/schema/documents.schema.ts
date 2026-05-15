@@ -1,12 +1,9 @@
 import {
   pgTable,
-  varchar,
   uuid,
   timestamp,
   text,
-  pgEnum,
   integer,
-  vector,
 } from "drizzle-orm/pg-core";
 import { userTable } from "./users.schema";
 import { status } from "./enums";

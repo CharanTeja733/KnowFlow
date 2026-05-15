@@ -1,9 +1,8 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response} from "express";
 
 export async function notFoundHandler(
   req: Request,
   res: Response,
-  next: NextFunction,
 ) {
   return res.status(404).json({ error: "route not found" });
 }
@@ -11,8 +10,7 @@ export async function notFoundHandler(
 export async function globalErrorHandler(
   err: any,
   req: Request,
-  res: Response,
-  next: NextFunction,
+  res: Response
 ) {
   const statusCode = err.statusCode || 500;
 

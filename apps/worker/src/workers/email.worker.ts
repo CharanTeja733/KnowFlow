@@ -11,7 +11,15 @@ import { queueConfig } from "@repo/config";
 export const emailWorker = new Worker<SendEmailJob>(
   QUEUE_NAMES.EMAIL,
   async (job) => {
-    const { to, subject, html } = job.data;
+    const { to, subject, html, userId, requestId } = job.data;
+
+    console.log(
+      {
+        requestId,
+        userId,
+      },
+      "Sending password reset email",
+    );
 
     await sendEmail(to, subject, html);
   },

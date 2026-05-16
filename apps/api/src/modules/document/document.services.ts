@@ -19,6 +19,7 @@ import { ApiError } from "@/lib/errors";
 
 type CreateDocumentParams = CreateDocumentInput & {
   userId: string;
+  requestId: string;
 };
 
 export async function createDocument({
@@ -27,6 +28,7 @@ export async function createDocument({
   storageKey,
   fileSize,
   fileType,
+  requestId,
 }: CreateDocumentParams) {
   // Verify key belongs to user
   if (!storageKey.startsWith(`documents/${userId}/`)) {
@@ -70,6 +72,7 @@ export async function createDocument({
     {
       documentId: document.id,
       userId,
+      requestId,
     },
     defaultJobOptions,
   );
@@ -101,7 +104,6 @@ export async function generatePresignedUrl(
     userId,
 
     fileName: data.fileName,
-
     mimeType: data.mimeType,
   });
 }

@@ -18,7 +18,17 @@ import {
   publishDocumentFailed,
 } from "@repo/events";
 
-export async function processDocument(documentId: string, userId: string) {
+type ProcessDocumentParams = {
+  documentId: string;
+  userId: string;
+  requestId: string;
+};
+
+export async function processDocument({
+  documentId,
+  userId,
+  requestId,
+}: ProcessDocumentParams) {
   /**
    * -----------------------------------
    * Fetch Document
@@ -38,7 +48,14 @@ export async function processDocument(documentId: string, userId: string) {
    */
 
   if (document.status === "COMPLETED") {
-    console.log("Already processed:", documentId);
+    console.log(
+      {
+        requestId,
+        documentId,
+        userId,
+      },
+      "Already processed",
+    );
 
     return;
   }
@@ -148,7 +165,14 @@ export async function processDocument(documentId: string, userId: string) {
 
     await publishDocumentCompleted(documentId, result.summary);
 
-    console.log("✅ Document processed:", documentId);
+    console.log(
+      {
+        requestId,
+        documentId,
+        userId,
+      },
+      "Document processed",
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
 
@@ -176,7 +200,15 @@ export async function processDocument(documentId: string, userId: string) {
 
     await publishDocumentFailed(documentId, message);
 
-    console.error("❌ Processing failed:", documentId, message);
+    console.error(
+      {
+        requestId,
+        documentId,
+        userId,
+        error: message,
+      },
+      "Document processing failed",
+    );
 
     throw err;
   }

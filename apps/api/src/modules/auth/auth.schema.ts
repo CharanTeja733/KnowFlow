@@ -47,7 +47,14 @@ export const resetPasswordSchema = z.object({
     password: z.string().trim().min(8).max(72),
   }),
 });
-export type Register = z.infer<typeof registerSchema>["body"];
+
+export type Register = z.infer<typeof registerSchema>["body"] & {
+  userId: string;
+  requestId: string;
+};
+export type ForgotPasswordSchema = z.infer<
+  typeof forgotPasswordSchema
+>["body"] & { userId: string; requestId: string };
 export type Login = z.infer<typeof loginSchema>["body"];
 
 export type Signup = z.infer<typeof signupSchema>["body"];

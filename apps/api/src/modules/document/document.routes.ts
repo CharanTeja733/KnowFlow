@@ -1,6 +1,7 @@
 import express from "express";
 import * as controllers from "./document.controllers";
 import { ensureAuthenticated } from "../../middlewares/authentication.middlewares";
+import { uploadLimiter } from "@/middlewares/ratelimiter";
 import { validate } from "../../middlewares/validation.middleware";
 import {
   deleteDocumentSchema,
@@ -13,27 +14,30 @@ import {
 const router = express.Router();
 
 router.use(ensureAuthenticated);
+
 router.post(
-  "/",
+  "/presigned-url",
+  uploadLimiter,
+  validate(generatePresignedUrlSchema),
+  controllers.generatePresignedUrlController,
+);
+router.post(
+  "/finalize",
+  uploadLimiter,
   validate(createDocumentSchema),
   controllers.createDocumentController,
 );
 
 router.get("/", controllers.getDocumentsController);
 router.get(
-  "/:id",
+  "/:documentId",
   validate(getDocumentSchema),
   controllers.getDocumentController,
 );
 router.delete(
-  "/:id",
+  "/:documentId",
   validate(deleteDocumentSchema),
   controllers.deleteDocumentController,
-);
-router.post(
-  "/presigned-url",
-  validate(generatePresignedUrlSchema),
-  controllers.generatePresignedUrlController,
 );
 
 export default router;

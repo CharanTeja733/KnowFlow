@@ -1,12 +1,15 @@
 export type ProcessDocumentJob = {
   documentId: string;
   userId: string;
+  requestId: string;
 };
 
 export type SendEmailJob = {
   to: string;
   subject: string;
   html: string;
+  requestId: string;
+  userId: string;
 };
 
 // Dead letter job (generic + reusable)

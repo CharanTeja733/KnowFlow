@@ -2,27 +2,24 @@ import type { Request, Response, NextFunction } from "express";
 import { decodeUserToken } from "../utils/token";
 import type { JWTPayload } from "../utils/token";
 import { ApiError } from "../utils/ApiError";
+
 export async function authenticationMiddleware(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-  const bearerToken = req.headers.authorization;
+  const token = req.cookies.accessToken;
 
-  if (!bearerToken) {
+  if (!token) {
     return next();
   }
 
-  if (!bearerToken.startsWith("Bearer ")) {
-    return res.status(400).json({ error: "Token should start with Bearer" });
-  }
-
-  const [, token] = bearerToken.split(" ");
   let decoded: JWTPayload;
+
   try {
-    decoded = decodeUserToken(token!);
+    decoded = decodeUserToken(token);
   } catch {
-    return next(new ApiError(400, "invalid json token"));
+    return next(new ApiError(401, "Invalid access token"));
   }
 
   req.user = decoded;
@@ -36,7 +33,8 @@ export async function ensureAuthenticated(
   next: NextFunction,
 ) {
   if (!req.user) {
-    return next(new ApiError(401, "you are not logged in"));
+    return next(new ApiError(401, "You are not logged in"));
   }
+
   next();
 }

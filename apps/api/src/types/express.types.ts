@@ -8,6 +8,7 @@ declare global {
     interface Request {
       user?: JWTPayload;
       file?: Multer.File;
+      requestId: string;
     }
   }
 }

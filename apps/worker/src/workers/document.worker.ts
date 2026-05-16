@@ -7,9 +7,9 @@ import { queueConfig } from "@repo/config";
 export const documentWorker = new Worker<ProcessDocumentJob>(
   "document-processing",
   async (job) => {
-    const { documentId, userId } = job.data;
+    const { documentId, userId, requestId } = job.data;
 
-    await processDocument(documentId, userId);
+    await processDocument({ documentId, userId, requestId });
   },
   {
     connection: redisClient,

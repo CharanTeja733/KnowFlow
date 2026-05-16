@@ -2,65 +2,82 @@ import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "@repo/redis/client";
 
+/**
+ * Redis command adapter
+ */
 const sendRedisCommand = (...args: string[]) =>
   redisClient.call(args[0]!, ...args.slice(1)) as Promise<unknown> as Promise<
     import("rate-limit-redis").RedisReply
   >;
 
 /**
- * Global API Rate Limiter
+ * Shared Redis store
  */
-export const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+const redisStore = new RedisStore({
+  sendCommand: sendRedisCommand,
+});
 
-  max: 100, // max requests per window per key
+/**
+ * Shared config
+ */
+const commonConfig = {
+  store: redisStore,
 
-  standardHeaders: true, // return rate limit info in headers
-  legacyHeaders: false, // disable old headers
-
-  /**
-   * Redis store (shared across all instances)
-   */
-  store: new RedisStore({
-    sendCommand: sendRedisCommand,
-  }),
+  standardHeaders: true,
+  legacyHeaders: false,
 
   /**
-   * Unique identifier (IP or user)
+   * Logged-in users → userId
+   * Anonymous users → IP
    */
-  keyGenerator: (req) => {
-    return req.ip ?? ""; // express types allow undefined
+  keyGenerator: (req: Express.Request) => {
+    return req.user?.id ?? req.ip ?? "unknown-ip";
   },
 
-  /**
-   * Custom error response
-   */
-  handler: (req, res) => {
-    res.status(429).json({
+  handler: (req: Express.Request, res: Express.Response) => {
+    return res.status(429).json({
       success: false,
       message: "Too many requests. Please try again later.",
     });
   },
+};
+
+/**
+ * Global API limiter
+ */
+export const globalLimiter = rateLimit({
+  ...commonConfig,
+
+  windowMs: 15 * 60 * 1000,
+  max: 100,
 });
 
+/**
+ * Login protection
+ */
 export const loginLimiter = rateLimit({
+  ...commonConfig,
+
   windowMs: 15 * 60 * 1000,
   max: 5,
-
-  store: new RedisStore({
-    sendCommand: sendRedisCommand,
-  }),
-
-  message: "Too many login attempts",
 });
 
+/**
+ * Forgot password protection
+ */
 export const forgotPasswordLimiter = rateLimit({
+  ...commonConfig,
+
   windowMs: 15 * 60 * 1000,
   max: 3,
+});
 
-  store: new RedisStore({
-    sendCommand: sendRedisCommand,
-  }),
+/**
+ * Upload protection
+ */
+export const uploadLimiter = rateLimit({
+  ...commonConfig,
 
-  message: "Too many requests",
+  windowMs: 15 * 60 * 1000,
+  max: 20,
 });

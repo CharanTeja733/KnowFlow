@@ -15,12 +15,17 @@ import { ApiError } from "@/lib/errors";
 
 // Register
 export async function registerController(req: Request, res: Response) {
+  const userId = req.user?.id as string;
+  const requestId = req.requestId;
+
   const { name, email, password } = req.body;
 
   await registerUser({
     name,
     email,
     password,
+    userId,
+    requestId,
   });
 
   return res.status(201).json({
@@ -124,8 +129,10 @@ export async function logoutController(req: Request, res: Response) {
 // Forgot password
 export async function forgotPasswordController(req: Request, res: Response) {
   const { email } = req.body;
+  const userId = req.user?.id as string;
+  const requestId = req.requestId;
 
-  await forgotPassword(email);
+  await forgotPassword({ email, requestId, userId });
 
   return res.status(200).json({
     success: true,

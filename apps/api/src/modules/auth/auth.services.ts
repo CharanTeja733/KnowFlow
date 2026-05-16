@@ -1,5 +1,3 @@
-// apps/api/src/modules/auth/auth.services.ts
-
 import { userRepository } from "@repo/db/repositories";
 import { emailQueue } from "@repo/queue/email.queue";
 import { defaultJobOptions } from "@repo/queue/base";
@@ -24,11 +22,11 @@ import { authConfig } from "@repo/config";
 import { buildResetPasswordUrl, buildEmailVerificationUrl } from "./auth.urls";
 import { ApiError } from "@/lib/errors";
 
-import type { Register } from "./auth.schema";
+import type { ForgotPasswordSchema, Register } from "./auth.schema";
 
 // Register user
 export async function registerUser(userDetails: Register) {
-  const { name, email, password } = userDetails;
+  const { name, email, password, userId, requestId } = userDetails;
 
   // Check existing user
   const existingUser = await userRepository.findByEmail(email);
@@ -63,6 +61,8 @@ export async function registerUser(userDetails: Register) {
       to: user.email,
       subject: "Verify Email",
       html: verifyEmailTemplate(verificationLink),
+      requestId,
+      userId,
     },
     defaultJobOptions,
   );
@@ -191,7 +191,11 @@ export async function logoutUser(userId: string) {
 }
 
 // Forgot password
-export async function forgotPassword(email: string) {
+export async function forgotPassword({
+  email,
+  userId,
+  requestId,
+}: ForgotPasswordSchema) {
   const user = await userRepository.findByEmail(email);
 
   // Prevent user enumeration
@@ -211,6 +215,8 @@ export async function forgotPassword(email: string) {
       to: user.email,
       subject: "Reset Password",
       html: forgotPasswordTemplate(resetURL),
+      userId,
+      requestId,
     },
     defaultJobOptions,
   );

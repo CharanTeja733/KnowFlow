@@ -1,19 +1,13 @@
-import type { Worker }
-from "bullmq";
+import type { Worker } from "bullmq";
 
-import {
-  deadLetterQueue,
-} from "../dead-letter.queue";
+import { deadLetterQueue } from "../dead-letter.queue";
 
-import type {
-  DeadLetterJob,
-} from "../types";
+import type { DeadLetterJob } from "../types";
 
-export function
-registerDeadLetterHandler(
+export function registerDeadLetterHandler(
   worker: Worker,
 
-  deadLetterJobName: string
+  deadLetterJobName: string,
 ) {
   worker.on(
     "failed",
@@ -25,52 +19,31 @@ registerDeadLetterHandler(
 
       // Only move to DLQ
       // after ALL retries fail
-      if (
-        job.attemptsMade <
-        (job.opts.attempts ?? 1)
-      ) {
+      if (job.attemptsMade < (job.opts.attempts ?? 1)) {
         return;
       }
 
       try {
-        const dlqPayload:
-          DeadLetterJob = {
+        const dlqPayload: DeadLetterJob = {
+          originalJobName: job.name,
 
-          originalJobName:
-            job.name,
+          originalQueue: job.queueName,
 
-          originalQueue:
-            job.queueName,
+          payload: job.data,
 
-          payload:
-            job.data,
+          errorMessage: err.message,
 
-          errorMessage:
-            err.message,
+          failedAt: new Date().toISOString(),
 
-          failedAt:
-            new Date()
-              .toISOString(),
-
-          attemptsMade:
-            job.attemptsMade,
+          attemptsMade: job.attemptsMade,
         };
 
-        await deadLetterQueue.add(
-          deadLetterJobName,
-          dlqPayload
-        );
+        await deadLetterQueue.add(deadLetterJobName, dlqPayload);
 
-        console.error(
-          "Moved to DLQ:",
-          dlqPayload
-        );
+        console.error("Moved to DLQ:", dlqPayload);
       } catch (dlqError) {
-        console.error(
-          "Failed to move job to DLQ:",
-          dlqError
-        );
+        console.error("Failed to move job to DLQ:", dlqError);
       }
-    }
+    },
   );
 }

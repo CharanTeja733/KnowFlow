@@ -36,7 +36,9 @@
       "@repo/config/*": ["packages/config/*"],
       "@repo/config": ["packages/config/index.ts"],
 
-      "@repo/storage/*": ["packages/storage/*"]
+      "@repo/storage/*": ["packages/storage/*"],
+
+      "@repo/logger": ["packages/logger/src/index.ts"]
     }
   }
 }

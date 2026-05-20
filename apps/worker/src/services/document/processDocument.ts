@@ -18,6 +18,8 @@ import {
   publishDocumentFailed,
 } from "@repo/events";
 
+import { logger } from "@repo/logger";
+
 type ProcessDocumentParams = {
   documentId: string;
   userId: string;
@@ -29,11 +31,18 @@ export async function processDocument({
   userId,
   requestId,
 }: ProcessDocumentParams) {
+  const documentLogger = logger.child({
+    requestId,
+    documentId,
+    userId,
+  });
   /**
    * -----------------------------------
    * Fetch Document
    * -----------------------------------
    */
+
+  documentLogger.info("Started processing");
 
   const document = await documentRepository.findById(documentId, userId);
 
@@ -165,14 +174,7 @@ export async function processDocument({
 
     await publishDocumentCompleted(documentId, result.summary);
 
-    console.log(
-      {
-        requestId,
-        documentId,
-        userId,
-      },
-      "Document processed",
-    );
+    documentLogger.info("Document processed");
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
 
@@ -200,15 +202,7 @@ export async function processDocument({
 
     await publishDocumentFailed(documentId, message);
 
-    console.error(
-      {
-        requestId,
-        documentId,
-        userId,
-        error: message,
-      },
-      "Document processing failed",
-    );
+    documentLogger.error({ err: message }, "Failed");
 
     throw err;
   }

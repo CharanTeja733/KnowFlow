@@ -15,7 +15,7 @@ import { verifyUploadedObject } from "@repo/storage/verify";
 
 import { storageConfig } from "@repo/config/storage.config";
 
-import { ApiError } from "@/lib/errors";
+import { ApiError } from "../../lib/errors";
 
 type CreateDocumentParams = CreateDocumentInput & {
   userId: string;

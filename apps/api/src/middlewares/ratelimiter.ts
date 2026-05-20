@@ -1,6 +1,7 @@
 import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "@repo/redis/client";
+import type { Request, Response } from "express";
 
 /**
  * Redis command adapter
@@ -30,11 +31,11 @@ const commonConfig = {
    * Logged-in users → userId
    * Anonymous users → IP
    */
-  keyGenerator: (req: Express.Request) => {
+  keyGenerator: (req: Request) => {
     return req.user?.id ?? req.ip ?? "unknown-ip";
   },
 
-  handler: (req: Express.Request, res: Express.Response) => {
+  handler: (req: Request, res: Response) => {
     return res.status(429).json({
       success: false,
       message: "Too many requests. Please try again later.",

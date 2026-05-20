@@ -1,7 +1,7 @@
 import express from "express";
 import * as controllers from "./document.controllers";
 import { ensureAuthenticated } from "../../middlewares/authentication.middlewares";
-import { uploadLimiter } from "@/middlewares/ratelimiter";
+import { uploadLimiter } from "../../middlewares/ratelimiter";
 import { validate } from "../../middlewares/validation.middleware";
 import {
   deleteDocumentSchema,

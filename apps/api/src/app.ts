@@ -9,6 +9,7 @@ import {
 import { requestIdMiddleware } from "./middlewares/request-id.middleware";
 import { globalLimiter } from "./middlewares/ratelimiter";
 import { authenticationMiddleware } from "./middlewares/authentication.middlewares";
+import { requestLogger } from "./middlewares/request-logger.middlewares";
 
 import helmet from "helmet";
 import cors from "cors";
@@ -55,6 +56,10 @@ app.use(
  */
 app.use(cookieParser());
 
+/**
+ * request logger
+ */
+app.use(requestLogger);
 /**
  * Global rate limiting
  */

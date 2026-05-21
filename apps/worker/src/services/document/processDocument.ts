@@ -1,6 +1,7 @@
 import {
   documentRepository,
   processingRepository,
+  chunkRepository,
 } from "@repo/db/repositories";
 
 import { downloadFile } from "@repo/storage/download";
@@ -8,7 +9,8 @@ import { downloadFile } from "@repo/storage/download";
 import { parseFile } from "@repo/parser/parse";
 import { validateFile } from "@repo/parser/validate";
 import { parserConfig } from "@repo/config/parser.config";
-
+import { chunkText } from "@repo/ai/chunk";
+import { createEmbeddings } from "@repo/ai/embeddings";
 import { summarizeDocument } from "./summarizeDocument";
 
 import {
@@ -57,14 +59,7 @@ export async function processDocument({
    */
 
   if (document.status === "COMPLETED") {
-    console.log(
-      {
-        requestId,
-        documentId,
-        userId,
-      },
-      "Already processed",
-    );
+    documentLogger.info("Already processed");
 
     return;
   }
@@ -118,37 +113,75 @@ export async function processDocument({
     }
     /**
      * -----------------------------------
-     * Summarize Document
+     * Process AI Tasks
      * -----------------------------------
      */
 
     let processingInitialized = false;
 
-    const result = await summarizeDocument(text, {
-      onProgress: async (completedChunks, totalChunks) => {
-        /**
-         * Initialize Processing State
-         */
+    const chunks = chunkText(text);
 
-        if (!processingInitialized) {
-          await processingRepository.start(documentId, totalChunks);
+    const onProgress = async (completedChunks: number, totalChunks: number) => {
+      /**
+       * Initialize Processing State
+       */
 
-          processingInitialized = true;
-        }
+      if (!processingInitialized) {
+        await processingRepository.start(documentId, totalChunks);
 
-        /**
-         * Persist Progress
-         */
+        processingInitialized = true;
+      }
 
-        await processingRepository.updateProgress(documentId, completedChunks);
+      /**
+       * Persist Progress
+       */
 
-        /**
-         * Publish Progress Event
-         */
+      await processingRepository.updateProgress(documentId, completedChunks);
 
-        await publishDocumentProgress(documentId, completedChunks, totalChunks);
-      },
+      /**
+       * Publish Progress Event
+       */
+
+      await publishDocumentProgress(documentId, completedChunks, totalChunks);
+    };
+
+    const [result, embeddings] = await Promise.all([
+      summarizeDocument(chunks, {
+        onProgress,
+      }),
+
+      createEmbeddings(chunks),
+    ]);
+
+    /**
+     * -----------------------------------
+     * Persist Chunks
+     * -----------------------------------
+     */
+
+    if (chunks.length !== embeddings.length) {
+      throw new Error("Chunk and embedding count mismatch");
+    }
+
+    const chunkRows = chunks.map((chunk, index) => {
+      const embedding = embeddings[index];
+
+      if (!embedding) {
+        throw new Error(`Missing embedding for chunk ${index}`);
+      }
+
+      return {
+        documentId,
+
+        content: chunk,
+
+        chunkIndex: index,
+
+        embedding,
+      };
     });
+
+    await chunkRepository.createMany(chunkRows);
 
     /**
      * -----------------------------------

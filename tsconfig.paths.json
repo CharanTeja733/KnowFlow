@@ -12,7 +12,7 @@
       "@repo/queue/email.queue": ["packages/queue/email.queue"],
       "@repo/queue/*": ["packages/queue/*"],
 
-      "@repo/ai": ["packages/ai"],
+      "@repo/ai/*": ["packages/ai/*"],
       "@repo/ai/summarize": ["packages/ai/summarize"],
       "@repo/ai/chunk": ["packages/ai/chunk"],
       "@repo/ai/summarizeChunk": ["packages/ai/summarizeChunk"],

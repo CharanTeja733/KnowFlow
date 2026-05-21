@@ -1,7 +1,5 @@
 import pLimit from "p-limit";
 
-import { chunkText } from "@repo/ai/chunk";
-
 import { summarizeChunk } from "@repo/ai/summarizeChunk";
 
 import { combineSummaries } from "@repo/ai/combineSummaries";
@@ -23,16 +21,16 @@ type SummarizeDocumentOptions = {
 };
 
 export async function summarizeDocument(
-  text: string,
+  chunks: string[],
   options?: SummarizeDocumentOptions,
 ) {
-  const chunks = chunkText(text);
-
   const totalChunks = chunks.length;
 
   const limit = pLimit(CHUNK_CONCURRENCY);
 
   let completedChunks = 0;
+
+  let lastReportedProgress = 0;
 
   const summaries = await Promise.all(
     chunks.map((chunk) =>
@@ -41,7 +39,14 @@ export async function summarizeDocument(
 
         completedChunks++;
 
-        if (options?.onProgress) {
+        const progress = Math.floor((completedChunks / totalChunks) * 100);
+
+        const shouldReport =
+          progress === 100 || progress - lastReportedProgress >= 10;
+
+        if (shouldReport && options?.onProgress) {
+          lastReportedProgress = progress;
+
           await options.onProgress(completedChunks, totalChunks);
         }
 

@@ -8,7 +8,9 @@ import {
   getDocumentSchema,
   generatePresignedUrlSchema,
   createDocumentSchema,
+  chatWithDocumentSchema,
 } from "./document.schema";
+
 // import { upload } from "@repo/upload/multer";
 
 const router = express.Router();
@@ -38,6 +40,12 @@ router.delete(
   "/:documentId",
   validate(deleteDocumentSchema),
   controllers.deleteDocumentController,
+);
+
+router.post(
+  "/:id/chat",
+  validate(chatWithDocumentSchema),
+  controllers.chatDocumentController,
 );
 
 export default router;

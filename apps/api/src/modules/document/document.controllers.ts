@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { ApiError } from "../../utils/ApiError";
 import * as services from "./document.services";
+import { chatWithDocument } from "./chatWithDocument.service";
+import type { ChatDocumentParams, ChatDocumentBody } from "./document.types";
 
 export async function createDocumentController(req: Request, res: Response) {
   const userId = req.user!.id;
@@ -60,4 +62,33 @@ export async function generatePresignedUrlController(
     success: true,
     data: result,
   });
+}
+
+export async function chatDocumentController(
+  req: Request<ChatDocumentParams, unknown, ChatDocumentBody>,
+  res: Response,
+) {
+  const { question } = req.body;
+  const documentId = req.params.id;
+
+  const userId = req.user!.id;
+
+  req.log.info(
+    {
+      documentId,
+
+      userId,
+    },
+    "Document chat request",
+  );
+
+  const result = await chatWithDocument({
+    documentId,
+
+    userId,
+
+    question,
+  });
+
+  return res.status(200).json(result);
 }

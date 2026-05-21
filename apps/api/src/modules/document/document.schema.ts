@@ -24,6 +24,16 @@ export const createDocumentSchema = z.object({
   }),
 });
 
+export const chatWithDocumentSchema = z.object({
+  body: z.object({
+    question: z
+      .string()
+      .trim()
+      .min(1, "Question is required")
+      .max(1000, "Question too long"),
+  }),
+});
+
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>["body"];
 
 export const generatePresignedUrlSchema = z.object({

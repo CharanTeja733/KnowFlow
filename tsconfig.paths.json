@@ -22,6 +22,7 @@
 
       "@repo/redis/client": ["packages/redis/client"],
       "@repo/redis/pubsub": ["packages/redis/pubsub"],
+      "@repo/redis": ["packages/redis/index.ts"],
 
       "@repo/storage/upload": ["packages/storage/upload"],
       "@repo/storage/fetchFile": ["packages/storage/fetchFile"],

@@ -1,7 +1,9 @@
-import { chunkRepository, documentRepository } from "@repo/db/repositories";
-
+import {
+  chunkRepository,
+  documentRepository,
+  conversationRepository,
+} from "@repo/db/repositories";
 import { createEmbeddings } from "@repo/ai/embeddings";
-
 import { askQuestion } from "@repo/ai/chat";
 
 type ChatWithDocumentParams = {
@@ -84,7 +86,12 @@ export async function chatWithDocument({
 
     context,
   });
-
+  await conversationRepository.create({
+    documentId,
+    userId,
+    question,
+    answer,
+  });
   return {
     answer,
 
@@ -94,4 +101,18 @@ export async function chatWithDocument({
       similarity: chunk.similarity,
     })),
   };
+}
+
+// conversation service
+export async function getChatHistoryService({
+  documentId,
+  userId,
+}: {
+  documentId: string;
+  userId: string;
+}) {
+  return conversationRepository.findByDocument({
+    documentId,
+    userId,
+  });
 }

@@ -5,7 +5,10 @@ type AskQuestionInput = {
   context: string;
 };
 
-export async function askQuestion({ question, context }: AskQuestionInput) {
+export async function askQuestion({
+  question,
+  context,
+}: AskQuestionInput): Promise<string> {
   const completion = await openai.chat.completions.create({
     model: "gpt-4.1-mini",
 
@@ -35,5 +38,11 @@ ${question}
     ],
   });
 
-  return completion.choices[0].message.content;
+  const answer = completion.choices[0]?.message?.content;
+
+  if (!answer) {
+    throw new Error("OpenAI returned empty response");
+  }
+
+  return answer;
 }

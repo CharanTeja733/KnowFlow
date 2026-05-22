@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import { ApiError } from "../../utils/ApiError";
 import * as services from "./document.services";
-import { chatWithDocument } from "./chatWithDocument.service";
+import {
+  chatWithDocument,
+  getChatHistoryService,
+} from "./chatWithDocument.service";
 import type { ChatDocumentParams, ChatDocumentBody } from "./document.types";
 
 export async function createDocumentController(req: Request, res: Response) {
@@ -91,4 +94,21 @@ export async function chatDocumentController(
   });
 
   return res.status(200).json(result);
+}
+
+export async function getChatHistory(
+  req: Request<{ id: string }>,
+  res: Response,
+) {
+  const { id: documentId } = req.params;
+
+  const userId = req.user!.id;
+
+  const conversations = await getChatHistoryService({
+    documentId,
+
+    userId,
+  });
+
+  res.json(conversations);
 }

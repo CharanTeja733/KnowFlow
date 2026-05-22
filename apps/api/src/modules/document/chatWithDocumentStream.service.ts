@@ -1,9 +1,10 @@
-import { chunkRepository, documentRepository } from "@repo/db/repositories";
-
+import {
+  chunkRepository,
+  documentRepository,
+  conversationRepository,
+} from "@repo/db/repositories";
 import { createEmbeddings } from "@repo/ai/embeddings";
-
 import { askQuestionStream } from "@repo/ai/chatStream";
-
 import { publishChatChunk } from "@repo/events/chat";
 
 type ChatWithDocumentParams = {
@@ -91,6 +92,12 @@ export async function chatWithDocument({
     },
   });
 
+  await conversationRepository.create({
+    documentId,
+    userId,
+    question,
+    answer,
+  });
   return {
     answer,
 

@@ -44,4 +44,27 @@ export const conversationRepository = {
       orderBy: (conversation, { asc }) => [asc(conversation.createdAt)],
     });
   },
+
+  async findRecentByDocument({
+    documentId,
+    userId,
+    limit = 5,
+  }: {
+    documentId: string;
+    userId: string;
+    limit: number;
+  }) {
+    return db.query.conversationTable.findMany({
+      where: (conversation, { and, eq }) =>
+        and(
+          eq(conversation.documentId, documentId),
+
+          eq(conversation.userId, userId),
+        ),
+
+      orderBy: (conversation, { desc }) => [desc(conversation.createdAt)],
+
+      limit,
+    });
+  },
 };

@@ -22,9 +22,18 @@ export async function askQuestionStream({
         role: "system",
 
         content: `
-          Answer only from context.
-          Say you don't know if information is unavailable.
-          `,
+
+Answer using the provided document context.
+
+Use previous conversation only
+for conversational continuity.
+
+Do not invent facts.
+
+If information is unavailable,
+say you don't know.
+
+`,
       },
 
       {

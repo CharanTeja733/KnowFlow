@@ -5,7 +5,7 @@ import {
 } from "@repo/db/repositories";
 import { createEmbeddings } from "@repo/ai/embeddings";
 import { askQuestion } from "@repo/ai/chat";
-
+import { buildConversationContext } from "./buildConversationContext";
 type ChatWithDocumentParams = {
   documentId: string;
   userId: string;
@@ -69,12 +69,21 @@ export async function chatWithDocument({
 
   /**
    * -----------------------------------
-   * Build context
+   * Build Document context
    * -----------------------------------
    */
 
-  const context = chunks.map((chunk) => chunk.content).join("\n\n");
+  const documentContext = chunks.map((chunk) => chunk.content).join("\n\n");
 
+  /**
+   * -----------------------------------
+   * Build Conversation context
+   * -----------------------------------
+   */
+  const conversationContext = await buildConversationContext({
+    documentId,
+    userId,
+  });
   /**
    * -----------------------------------
    * Generate answer
@@ -84,14 +93,26 @@ export async function chatWithDocument({
   const answer = await askQuestion({
     question,
 
-    context,
+    context: `
+
+Previous conversation:
+
+${conversationContext}
+
+Document context:
+
+${documentContext}
+
+  `,
   });
+
   await conversationRepository.create({
     documentId,
     userId,
     question,
     answer,
   });
+
   return {
     answer,
 

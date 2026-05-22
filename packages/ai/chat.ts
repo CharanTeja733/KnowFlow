@@ -15,9 +15,19 @@ export async function askQuestion({
     messages: [
       {
         role: "system",
+
         content: `
-Answer only from context.
-Say you don't know otherwise.
+
+Answer using the provided document context.
+
+Use previous conversation only
+for conversational continuity.
+
+Do not invent facts.
+
+If information is unavailable,
+say you don't know.
+
 `,
       },
 

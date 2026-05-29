@@ -54,7 +54,7 @@ router.post(
 router.get("/:id/chat/stream", chatControllers.chatStream);
 
 //get conversation history route
-router.get("/:id/conversations");
+router.get("/:id/conversations", controllers.getChatHistory);
 export default router;
 
 // router.post("/", upload.single("file"), controllers.uploadDocumentController);

@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import { env } from "@repo/env";
 
 import {
   registerUser,
@@ -12,10 +11,10 @@ import {
 } from "./auth.services";
 
 import { ApiError } from "@/lib/errors";
+import { setAuthCookies, clearAuthCookies } from "@/lib/auth-cookies";
 
 // Register
 export async function registerController(req: Request, res: Response) {
-  const userId = req.user?.id as string;
   const requestId = req.requestId;
 
   const { name, email, password } = req.body;
@@ -24,7 +23,6 @@ export async function registerController(req: Request, res: Response) {
     name,
     email,
     password,
-    userId,
     requestId,
   });
 
@@ -53,21 +51,10 @@ export async function loginController(req: Request, res: Response) {
   const result = await loginUser(email, password);
 
   // Store refresh token in cookie
-  res.cookie("refreshToken", result.refreshToken, {
-    httpOnly: true,
-
-    secure: env.NODE_ENV === "production",
-
-    sameSite: "strict",
-
-    domain: env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined,
-
-    maxAge: env.COOKIE_MAX_AGE,
-  });
+  setAuthCookies(res, result.accessToken, result.refreshToken);
 
   return res.status(200).json({
     success: true,
-    accessToken: result.accessToken,
     user: result.user,
   });
 }
@@ -83,27 +70,16 @@ export async function refreshTokenController(req: Request, res: Response) {
   const tokens = await refreshAccessToken(refreshToken);
 
   // Rotate refresh token cookie
-  res.cookie("refreshToken", tokens.refreshToken, {
-    httpOnly: true,
-
-    secure: env.NODE_ENV === "production",
-
-    sameSite: "strict",
-
-    domain: env.NODE_ENV === "production" ? env.COOKIE_DOMAIN : undefined,
-
-    maxAge: env.COOKIE_MAX_AGE,
-  });
+  setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
   return res.status(200).json({
     success: true,
-    accessToken: tokens.accessToken,
   });
 }
 
 // Logout
 export async function logoutController(req: Request, res: Response) {
-  const userId = req.user?.id;
+  const userId = req.user?.userId;
 
   if (!userId) {
     throw new ApiError(401, "Unauthorized");
@@ -111,14 +87,8 @@ export async function logoutController(req: Request, res: Response) {
 
   await logoutUser(userId);
 
-  // Clear refresh token cookie
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-
-    secure: process.env.NODE_ENV === "production",
-
-    sameSite: "strict",
-  });
+  // Clear refresh and access token cookies
+  clearAuthCookies(res);
 
   return res.status(200).json({
     success: true,
@@ -129,14 +99,12 @@ export async function logoutController(req: Request, res: Response) {
 // Forgot password
 export async function forgotPasswordController(req: Request, res: Response) {
   const { email } = req.body;
-  const userId = req.user?.id as string;
   const requestId = req.requestId;
 
-  await forgotPassword({ email, requestId, userId });
+  await forgotPassword({ email, requestId });
 
   return res.status(200).json({
     success: true,
-
     message: "If the email exists, a reset link has been sent",
   });
 }

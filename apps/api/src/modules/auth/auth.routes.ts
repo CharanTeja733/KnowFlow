@@ -3,6 +3,7 @@ import * as controllers from "./auth.controllers";
 import { validate } from "../../middlewares/validation.middleware";
 import * as schema from "./auth.schema";
 import { forgotPasswordLimiter, loginLimiter } from "@/middlewares/ratelimiter";
+import { ensureAuthenticated } from "@/middlewares/authentication.middlewares";
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.post(
   controllers.loginController,
 );
 router.post("/refresh-token", controllers.refreshTokenController);
-router.post("/logout", controllers.logoutController);
+router.post("/logout", ensureAuthenticated, controllers.logoutController);
 
 router.post(
   "/forgot-password",

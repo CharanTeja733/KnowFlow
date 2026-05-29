@@ -1,6 +1,6 @@
 export function verifyEmailTemplate(verificationURL: string) {
   return `
-        <p>Verfication Email</p>
+        <p>Verification Email</p>
         <a href="${verificationURL}">Verify Email</a>
         <p>This link expires in 24 hours</p>
       `;

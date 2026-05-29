@@ -1,14 +1,14 @@
 /* eslint-disable
 @typescript-eslint/no-namespace */
 
-import type { JWTPayload } from "../utils/token";
+import type { AccessTokenPayload } from "@/lib/jwt";
 import type { Logger } from "pino";
 // import type {Multer} from "multer";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: JWTPayload;
+      user?: AccessTokenPayload;
       file?: Multer.File;
       requestId: string;
       log: Logger;

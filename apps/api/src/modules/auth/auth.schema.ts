@@ -49,12 +49,13 @@ export const resetPasswordSchema = z.object({
 });
 
 export type Register = z.infer<typeof registerSchema>["body"] & {
-  userId: string;
   requestId: string;
 };
+
 export type ForgotPasswordSchema = z.infer<
   typeof forgotPasswordSchema
->["body"] & { userId: string; requestId: string };
+>["body"] & { requestId: string };
+
 export type Login = z.infer<typeof loginSchema>["body"];
 
 export type Signup = z.infer<typeof signupSchema>["body"];

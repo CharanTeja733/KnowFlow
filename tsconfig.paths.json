@@ -24,8 +24,7 @@
       "@repo/redis/pubsub": ["packages/redis/pubsub"],
       "@repo/redis": ["packages/redis/index.ts"],
 
-      "@repo/storage/upload": ["packages/storage/upload"],
-      "@repo/storage/fetchFile": ["packages/storage/fetchFile"],
+      "@repo/storage/*": ["packages/storage/*"],
 
       "@repo/parser/*": ["packages/parser/*"],
 
@@ -36,8 +35,6 @@
 
       "@repo/config/*": ["packages/config/*"],
       "@repo/config": ["packages/config/index.ts"],
-
-      "@repo/storage/*": ["packages/storage/*"],
 
       "@repo/logger": ["packages/logger/src/index.ts"]
     }

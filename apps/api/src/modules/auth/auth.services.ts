@@ -1,6 +1,6 @@
 import { userRepository } from "@repo/db/repositories";
-import { emailQueue } from "@repo/queue/email.queue";
-import { defaultJobOptions } from "@repo/queue/base";
+import { emailQueue } from "@repo/queue";
+import { defaultJobOptions } from "@repo/queue";
 
 import {
   hashPassword,
@@ -26,7 +26,7 @@ import type { ForgotPasswordSchema, Register } from "./auth.schema";
 
 // Register user
 export async function registerUser(userDetails: Register) {
-  const { name, email, password, userId, requestId } = userDetails;
+  const { name, email, password, requestId } = userDetails;
 
   // Check existing user
   const existingUser = await userRepository.findByEmail(email);
@@ -62,7 +62,7 @@ export async function registerUser(userDetails: Register) {
       subject: "Verify Email",
       html: verifyEmailTemplate(verificationLink),
       requestId,
-      userId,
+      userId: user.id,
     },
     defaultJobOptions,
   );
@@ -109,7 +109,7 @@ export async function loginUser(email: string, password: string) {
   const isPasswordCorrect = await comparePassword(password, user.password);
 
   if (!isPasswordCorrect) {
-    throw new ApiError(401, "Invalid credentials");
+    throw new ApiError(401, "password is Invalid credentials");
   }
 
   // Generate tokens
@@ -138,10 +138,6 @@ export async function loginUser(email: string, password: string) {
 
 // Refresh access token
 export async function refreshAccessToken(oldRefreshToken: string) {
-  if (!oldRefreshToken) {
-    throw new ApiError(401, "Refresh token missing");
-  }
-
   // Verify refresh token
   const payload = verifyRefreshToken(oldRefreshToken);
 
@@ -193,7 +189,6 @@ export async function logoutUser(userId: string) {
 // Forgot password
 export async function forgotPassword({
   email,
-  userId,
   requestId,
 }: ForgotPasswordSchema) {
   const user = await userRepository.findByEmail(email);
@@ -215,7 +210,7 @@ export async function forgotPassword({
       to: user.email,
       subject: "Reset Password",
       html: forgotPasswordTemplate(resetURL),
-      userId,
+      userId: user.id,
       requestId,
     },
     defaultJobOptions,

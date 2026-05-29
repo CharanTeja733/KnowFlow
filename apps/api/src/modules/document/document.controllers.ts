@@ -8,7 +8,7 @@ import {
 import type { ChatDocumentParams, ChatDocumentBody } from "./document.types";
 
 export async function createDocumentController(req: Request, res: Response) {
-  const userId = req.user!.id;
+  const userId = req.user?.userId as string;
   const requestId = req.requestId;
 
   const document = await services.createDocument({
@@ -25,7 +25,7 @@ export async function createDocumentController(req: Request, res: Response) {
 }
 
 export async function getDocumentsController(req: Request, res: Response) {
-  const userId = req.user?.id as string;
+  const userId = req.user?.userId as string;
   const documents = await services.getDocuments(userId);
   return res
     .status(201)
@@ -33,7 +33,7 @@ export async function getDocumentsController(req: Request, res: Response) {
 }
 
 export async function getDocumentController(req: Request, res: Response) {
-  const userId = req.user?.id as string;
+  const userId = req.user?.userId as string;
   const documentId = req.params.id as string;
   const documentDetails = await services.getDocument(documentId, userId);
   return res
@@ -43,7 +43,7 @@ export async function getDocumentController(req: Request, res: Response) {
 
 export async function deleteDocumentController(req: Request, res: Response) {
   const documentId = req.params.id as string;
-  const userId = req.user?.id as string;
+  const userId = req.user?.userId as string;
 
   try {
     await services.deleteDocument(documentId, userId);
@@ -58,7 +58,7 @@ export async function generatePresignedUrlController(
   req: Request,
   res: Response,
 ) {
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
   const result = await services.generatePresignedUrl(userId, req.body);
 
   res.status(200).json({
@@ -74,7 +74,7 @@ export async function chatDocumentController(
   const { question } = req.body;
   const documentId = req.params.id;
 
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
 
   req.log.info(
     {
@@ -102,7 +102,7 @@ export async function getChatHistory(
 ) {
   const { id: documentId } = req.params;
 
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
 
   const conversations = await getChatHistoryService({
     documentId,

@@ -10,6 +10,8 @@ import {
   sendSSEComment,
 } from "../../infrastructure/sse/sse";
 
+import { ApiError } from "@/lib/errors";
+
 type ChatStreamParams = {
   id: string;
 };
@@ -21,7 +23,11 @@ export async function chatStream(
 ) {
   const { id: documentId } = req.params;
 
-  const userId = req.user!.id;
+  const userId = req.user?.userId;
+
+   if (!userId) {
+      throw new ApiError(401, "Unauthorized");
+    }
 
   /**
    * -----------------------------------

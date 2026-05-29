@@ -1,27 +1,46 @@
+import { env } from "@repo/env";
 import jwt from "jsonwebtoken";
-import { ApiError } from "@/lib/errors";
 
-export function generateAccessToken(userId: string, role: string) {
-  const expiresIn = (process.env.ACCESS_TOKEN_EXPIRY ||
-    "15m") as jwt.SignOptions["expiresIn"];
-  return jwt.sign({ userId, role }, process.env.ACCESS_SECRET!, { expiresIn });
+/**
+ * JWT payloads
+ */
+export interface AccessTokenPayload {
+  userId: string;
+  role: string;
 }
 
-export function generateRefreshToken(userId: string) {
-  const expiresIn = (process.env.REFRESH_TOKEN_EXPIRY ||
-    "7d") as jwt.SignOptions["expiresIn"];
-  const token = jwt.sign({ userId }, process.env.REFRESH_SECRET!, {
-    expiresIn,
+export interface RefreshTokenPayload {
+  userId: string;
+}
+
+export function generateAccessToken(userId: string, role: string): string {
+  return jwt.sign({ userId, role }, env.JWT_ACCESS_SECRET, {
+    expiresIn: env.JWT_ACCESS_EXPIRES_IN as jwt.SignOptions["expiresIn"],
+  });
+}
+
+export function generateRefreshToken(userId: string): {
+  token: string;
+  expiresAt: Date;
+} {
+  const token = jwt.sign({ userId }, env.JWT_REFRESH_SECRET, {
+    expiresIn: env.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions["expiresIn"],
   });
 
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + env.REFRESH_COOKIE_MAX_AGE);
   return { token, expiresAt };
 }
 
-export function verifyRefreshToken(token: string): { userId: string } {
-  try {
-    return jwt.verify(token, process.env.REFRESH_SECRET!) as { userId: string };
-  } catch {
-    throw new ApiError(401, "Invalid or expired refresh token");
-  }
+/**
+ * Verify refresh token
+ */
+export function verifyRefreshToken(token: string): RefreshTokenPayload {
+  return jwt.verify(token, env.JWT_REFRESH_SECRET) as { userId: string };
+}
+
+/**
+ * Verify access token
+ */
+export function verifyAccessToken(token: string): AccessTokenPayload {
+  return jwt.verify(token, env.JWT_ACCESS_SECRET) as AccessTokenPayload;
 }

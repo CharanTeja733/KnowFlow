@@ -1,6 +1,9 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+
 import { RedisStore } from "rate-limit-redis";
+
 import { redisClient } from "@repo/redis/client";
+
 import type { Request, Response } from "express";
 
 /**
@@ -12,44 +15,52 @@ const sendRedisCommand = (...args: string[]) =>
   >;
 
 /**
- * Shared Redis store
+ * Create isolated Redis store
  */
-const redisStore = new RedisStore({
-  sendCommand: sendRedisCommand,
-});
+function createRedisStore(prefix: string) {
+  return new RedisStore({
+    prefix,
+
+    sendCommand: sendRedisCommand,
+  });
+}
 
 /**
- * Shared config
+ * Shared key generator
+ *
+ * Logged-in users → userId
+ * Anonymous users → normalized IP
  */
-const commonConfig = {
-  store: redisStore,
+function keyGenerator(req: Request) {
+  return req.user?.userId ?? ipKeyGenerator(req.ip!);
+}
 
-  standardHeaders: true,
-  legacyHeaders: false,
+/**
+ * Shared handler
+ */
+function handler(req: Request, res: Response) {
+  return res.status(429).json({
+    success: false,
 
-  /**
-   * Logged-in users → userId
-   * Anonymous users → IP
-   */
-  keyGenerator: (req: Request) => {
-    return req.user?.id ?? req.ip ?? "unknown-ip";
-  },
-
-  handler: (req: Request, res: Response) => {
-    return res.status(429).json({
-      success: false,
-      message: "Too many requests. Please try again later.",
-    });
-  },
-};
+    message: "Too many requests. Please try again later.",
+  });
+}
 
 /**
  * Global API limiter
  */
 export const globalLimiter = rateLimit({
-  ...commonConfig,
+  store: createRedisStore("rl:global:"),
+
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  keyGenerator,
+
+  handler,
 
   windowMs: 15 * 60 * 1000,
+
   max: 100,
 });
 
@@ -57,19 +68,35 @@ export const globalLimiter = rateLimit({
  * Login protection
  */
 export const loginLimiter = rateLimit({
-  ...commonConfig,
+  store: createRedisStore("rl:login:"),
+
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  keyGenerator,
+
+  handler,
 
   windowMs: 15 * 60 * 1000,
-  max: 5,
+
+  max: 50,
 });
 
 /**
  * Forgot password protection
  */
 export const forgotPasswordLimiter = rateLimit({
-  ...commonConfig,
+  store: createRedisStore("rl:forgot-password:"),
+
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  keyGenerator,
+
+  handler,
 
   windowMs: 15 * 60 * 1000,
+
   max: 3,
 });
 
@@ -77,8 +104,16 @@ export const forgotPasswordLimiter = rateLimit({
  * Upload protection
  */
 export const uploadLimiter = rateLimit({
-  ...commonConfig,
+  store: createRedisStore("rl:upload:"),
+
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  keyGenerator,
+
+  handler,
 
   windowMs: 15 * 60 * 1000,
+
   max: 20,
 });

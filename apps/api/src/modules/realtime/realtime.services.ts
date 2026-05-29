@@ -33,7 +33,7 @@ export async function streamDocumentEvents({
     throw new ApiError(401, "Unauthorized");
   }
 
-  const userId = req.user.id;
+  const userId = req.user.userId;
 
   /**
    * -----------------------------------

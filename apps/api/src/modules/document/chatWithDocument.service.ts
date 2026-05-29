@@ -3,8 +3,7 @@ import {
   documentRepository,
   conversationRepository,
 } from "@repo/db/repositories";
-import { createEmbeddings } from "@repo/ai/embeddings";
-import { askQuestion } from "@repo/ai/chat";
+import { createEmbeddings, askQuestion } from "@repo/ai";
 import { buildConversationContext } from "./buildConversationContext";
 type ChatWithDocumentParams = {
   documentId: string;

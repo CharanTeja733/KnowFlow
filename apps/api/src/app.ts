@@ -1,5 +1,6 @@
 import express from "express";
 import { registerRoutes } from "./routes";
+import healthRouter from "./modules/health/health.routes";
 
 import {
   globalErrorHandler,
@@ -41,6 +42,13 @@ app.use(
     credentials: true,
   }),
 );
+
+/**
+ * Health route
+ *
+ * MUST come before global limiter
+ */
+app.use("/api/health", healthRouter);
 
 /**
  * Parse request body

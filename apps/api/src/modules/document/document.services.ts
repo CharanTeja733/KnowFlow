@@ -3,17 +3,15 @@ import type {
   CreateDocumentInput,
 } from "./document.schema";
 
-import { documentQueue } from "@repo/queue/document.queue";
+import { documentQueue } from "@repo/queue";
 
-import { defaultJobOptions } from "@repo/queue/base";
+import { defaultJobOptions } from "@repo/queue";
 
 import { documentRepository } from "@repo/db/repositories";
 
-import { generateUploadUrl } from "@repo/storage/presigned";
+import { generateUploadUrl, verifyUploadedObject } from "@repo/storage";
 
-import { verifyUploadedObject } from "@repo/storage/verify";
-
-import { storageConfig } from "@repo/config/storage.config";
+import { storageConfig } from "@repo/config";
 
 import { ApiError } from "../../lib/errors";
 

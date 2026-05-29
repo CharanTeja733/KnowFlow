@@ -6,7 +6,7 @@ export function generateToken() {
 }
 
 export function hashToken(token: string) {
-  return crypto.createHash("Sha256").update(token).digest("hex");
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
 export function generateResetToken() {

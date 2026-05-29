@@ -75,5 +75,4 @@ const envSchema = z.object({
   WORKER_CONCURRENCY: z.coerce.number(),
 });
 
-console.log("HELLO GUYS HOW ARE YU ALL I AM FINE", process.cwd());
 export const env = envSchema.parse(process.env);

@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { decodeUserToken } from "../utils/token";
-import type { JWTPayload } from "../utils/token";
+import { verifyAccessToken } from "@/lib/jwt";
 import { ApiError } from "../utils/ApiError";
 
 export async function authenticationMiddleware(
@@ -14,17 +13,13 @@ export async function authenticationMiddleware(
     return next();
   }
 
-  let decoded: JWTPayload;
-
   try {
-    decoded = decodeUserToken(token);
+    req.user = verifyAccessToken(token);
+
+    return next();
   } catch {
-    return next(new ApiError(401, "Invalid access token"));
+    return next(new ApiError(401, "Invalid or expired access token"));
   }
-
-  req.user = decoded;
-
-  return next();
 }
 
 export async function ensureAuthenticated(
